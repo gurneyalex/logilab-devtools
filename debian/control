@@ -39,9 +39,3 @@ Description: emacs lisp code for logilab development tools
   * an emacs mode for ChangeLog files
   * a small set of emacs shortcuts used at logilab
 
-Package: narval-lgp
-Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}, cubicweb-apycot, narval-apycot, logilab-packaging (= ${source:Version})
-Description: lgp extensions for apycot
- This package provides a set of actions to run lgp check and build from
- Narval/Apycot.

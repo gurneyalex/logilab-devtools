@@ -34,9 +34,6 @@ from os.path import join, isdir
 
 include_dirs = ['templates', join('test', 'data')]
 
-if isdir('narval'):
-    data_files = [[join('var', 'lib', 'narval', 'plugins'), [join('narval', 'lgp.py')]]]
-
 scripts = [
     # logilab-packaging
     'bin/changelog',
