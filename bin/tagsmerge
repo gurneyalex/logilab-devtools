@@ -1,0 +1,89 @@
+#!/usr/bin/python
+"""
+A very simple hg merge tool to merge .hgtags files a bit smarter
+than default merge algorithm
+
+To use it, simply add to your .hgrc file:
+
+
+[merge-patterns]
+.hgtags = tagsmerge
+
+[merge-tools]
+tagsmerge.executable = path/to/tagsmerge
+tagsmerge.args = $local $base $other -o $output
+
+"""
+import re
+from mercurial import config, extensions, hg, ui, util
+
+def loadtags(tagsfile):
+    tags = [line.strip().split(None, 1) for line in open(tagsfile) if line.strip() and not line.startswith('#')]
+    outd = {}
+    # use this so only the latest occurrence of a given tag is kept
+    for csid, tag in tags:
+        outd[tag] = csid
+    return outd
+
+rtagnum = re.compile('\d+')
+def tagsortkey(tag):
+    return [int(v) for v in rtagnum.findall(tag)]
+
+def tagsmerge(local, base, other):
+    repo = hg.repository(ui.ui(), '.')
+
+    tlocal = loadtags(local)
+    tother = loadtags(other)
+    tbase = loadtags(base)
+
+    output = {}
+    for tag, csid in tlocal.iteritems():
+        if tag not in tother:
+            output[tag] = [csid]
+    for tag, csid in tother.iteritems():
+        if tag not in tlocal:
+            output[tag] = [csid]
+    for tag, csid in tlocal.iteritems():
+        if tag in tother:
+            if tother[tag] != csid:
+                # XXX may be possible to be smarter here, but these
+                # are really dark corner cases (ie. 'deleted' -- aka
+                # csid = "0"*40 -- tag on one branch and moved tag on
+                # the other, etc.)
+                output[tag] = [csid, tother[tag]]
+            else:
+                output[tag] = [csid]
+
+    outstr = []
+    conflict = False
+    for tag, csids in sorted(output.iteritems(), key=lambda x: tagsortkey(x[0])):
+        if len(csids) == 1:
+            outstr.append("%s %s" % (csids[0], tag))
+        else:
+            outstr.append('<<<<<<< local\n')
+            outstr.append("%s %s" % (csids[0], tag))
+            outstr.append('=======\n')
+            outstr.append("%s %s" % (csids[1], tag))
+            outstr.append('>>>>>>> other\n')
+            conflict = True
+    return conflict, "\n".join(outstr) + '\n'
+
+if __name__ == '__main__':
+    import sys
+    import optparse
+    p = optparse.OptionParser("A simple merge tool for .hgtags files")
+    p.add_option('-o', '--output', dest='output', default=None,
+                 help='output filename; write to stdout if not set',)
+    opts, args = p.parse_args()
+    if len(args) != 3:
+        print sys.argv
+        p.error('3 arguments are required')
+
+    conflict, output = tagsmerge(args[0], args[1], args[2])
+    if opts.output is None:
+        print output
+    else:
+        open(opts.output, 'w').write(output)
+    sys.exit(conflict)
+
+

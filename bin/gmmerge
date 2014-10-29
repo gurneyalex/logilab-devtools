@@ -1,0 +1,67 @@
+#!/usr/bin/python
+"""
+A very simple hg merge tool to merge .hggrmapping files a bit smarter
+than default merge algorithm
+
+To use it, simply add to your .hgrc file:
+
+
+[merge-patterns]
+.hggrmapping = gmmerge
+
+[merge-tools]
+gmmerge.executable = path/to/gmmerge
+gmmerge.args = $local $base $other -o $output
+
+"""
+
+from itertools import chain
+
+from mercurial import hg, ui
+
+from logilab.devtools.gr_ext.grutils import load_guestrepo, to_mapping_entry, copy_into_root
+
+
+def gmmerge(local, other):
+    repo = hg.repository(ui.ui(), '.')
+    guestrepo = load_guestrepo()
+
+    print local, open(local).read()
+    print other, open(other).read()
+
+    gmlocald = guestrepo.readconfig(copy_into_root(repo, local), repo[None])['']
+    gmotherd = guestrepo.readconfig(copy_into_root(repo, other), repo[None])['']
+
+    conflicts = dict((key, (val, grotherd[key]))
+                     for (key, val) in gmlocald.iteritems()
+                     if (key in gmotherd and gmotherd[key] != val))
+
+    outstr = ["%s = %s" % (key, val)
+              for (key, val) in chain(gmlocald.iteritems(), gmotherd.iteritems())
+              if key not in conflicts]
+
+    for key, localval, otherval in conflicts:
+        outstr.append('<<<<<<< local')
+        pass
+
+    return bool(conflicts), '\n'.join(outstr) + '\n'
+
+
+if __name__ == '__main__':
+    import sys
+    import optparse
+    p = optparse.OptionParser("A simple merge tool for .hggrmapping files")
+    p.add_option('-o', '--output', dest='output', default=None,
+                 help='output filename; write to stdout if not set',)
+    opts, args = p.parse_args()
+    if len(args) != 3:
+        print sys.argv
+        p.error('3 arguments are required')
+
+    conflict, output = gmmerge(args[0], args[2])
+    print conflict, output, opts.output
+    if opts.output is None:
+        print output
+    else:
+        open(opts.output, 'w').write(output)
+    sys.exit(conflict)
