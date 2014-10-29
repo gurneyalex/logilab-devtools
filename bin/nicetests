@@ -1,0 +1,2 @@
+#!/bin/sh
+ionice -c 2 nice -n 20 chrt --idle 0 jobtest $@

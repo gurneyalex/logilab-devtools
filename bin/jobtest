@@ -1,0 +1,120 @@
+#!/usr/bin/python
+
+import os
+import re
+import random
+from Queue import Queue, Empty
+
+from subprocess import Popen
+from threading import Thread
+
+import sys
+
+QUIET = '-q' in sys.argv
+VERBOSE = '-v' in sys.argv
+PROCESS = 8
+
+#TF_RE = re.compile('^(unit)?test_.*\.py$')
+TF_RE = re.compile('^(unit)?test_.*\.py$')
+TEST_TOOL = 'pytest'
+
+
+def consumer(q_in, q_out):
+    """function in charge of running test
+
+    consume expected test from q_in, write result n q_out
+    """
+    try:
+        while True:
+            t_file = q_in.get_nowait()
+            ok = run_test(t_file)
+            q_out.put((t_file, ok))
+            q_out.task_done()
+    except Empty:
+        pass
+
+
+def run_test(t_file):
+    call = [TEST_TOOL, t_file]
+    err_file = t_file + '.err'
+    with open(err_file, 'w') as result_file:
+        test_run = Popen(call, stdout=result_file, stderr=result_file)
+        test_run.communicate()
+    ok = not test_run.returncode
+    if ok:
+        os.unlink(err_file)
+    return ok
+
+def good_old_output(results, pending):
+    not_ok = []
+    while pending:
+        try:
+            (t_file, ok) = results.get(timeout=1)
+        except Empty:
+            continue
+        if not QUIET:
+            print '<%3i>' % len(pending),
+        sys.stdout.flush()
+        if ok:
+            if not QUIET:
+                print '--', t_file
+        else:
+            print 'XX', t_file
+            not_ok.append(t_file)
+            if VERBOSE:
+                with open(t_file + '.err') as err:
+                    print err.read()
+        pending.remove(t_file)
+    if VERBOSE and not_ok:
+        print '=== Failures summary ==='
+        for t_file in not_ok:
+            print t_file
+
+def goatlog_output(results, pending):
+    import goatlog
+    from goatlog.handlers import CleanColorizedOutputHandler as CH
+    log = goatlog.LogManager('jobtests', [CH()])
+    while pending:
+        try:
+            (t_file, ok) = results.get(timeout=1)
+        except Empty:
+            continue
+        with log.context('file', t_file) as fcontex:
+            st = goatlog.STATUSES.GOOD if ok else goatlog.STATUSES.ERROR
+            fcontex.close(status=st)
+        pending.remove(t_file)
+
+if __name__ == '__main__':
+    test_files = Queue()
+    results = Queue()
+
+    all_files = []
+    for dirpath, dirnames, filenames in os.walk('.'):
+        for f in filenames[::-1]: # test_ is slower that unittest_
+            if TF_RE.match(f) and not f.endswith('test_views.py'):
+                # test_views is so slow that it need to run early to ever complete
+                all_files.append(os.path.join(dirpath, f))
+    pending = set(all_files)
+    random.shuffle(all_files)
+    for f in all_files:
+        test_files.put(f)
+
+    assert PROCESS > 0
+    for _ in xrange(PROCESS):
+        t = Thread(target=consumer, args=[test_files, results])
+        t.daemon = True
+        t.start()
+
+    try:
+        from goatlog.handlers import CleanColorizedOutputHandler as CH
+        output = goatlog_output
+    except ImportError:
+        output = good_old_output
+
+    output = good_old_output
+    try:
+        output(results, pending)
+    except KeyboardInterrupt, exc:
+        print '---- interrupted ----'
+        for t_file in pending:
+            print 'NO RESULT:', t_file

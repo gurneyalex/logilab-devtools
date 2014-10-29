@@ -1,0 +1,53 @@
+#!/usr/bin/python
+
+import os
+import sys
+import subprocess
+
+WITH_VALUE = set(('-e', '-f', '-m', '-A', '-B', '-C', '-D', '-d'))
+
+if '--' in sys.argv:
+    cut_index = sys.argv.index('--')
+else:
+    cut_index = len(sys.argv)
+
+grep_bin = 'egrep'
+options = ["-R", "-I", "--include=*.py"] # no need to shell escape
+expr = None
+target = []
+
+expect_arg_value = False
+for arg in sys.argv[1:cut_index]:
+    if expect_arg_value or arg.startswith('-'):
+        options.append(arg)
+        if expect_arg_value:
+            expect_arg_value = False
+        elif arg in WITH_VALUE:
+            expect_arg_value = True
+    elif expr is None:
+        expr = arg
+    else:
+        if not os.path.isdir(arg):
+            print >> sys.stderr, 'WARNING: ignoring non-dir target: %s' % arg
+        target.append(arg)
+for arg in sys.argv[cut_index:]:
+    if expr is None:
+        expr = arg
+    else:
+        target.append(arg)
+
+if not target:
+    target.append('.')
+
+if '-R' not in options:
+    options.append('-R')
+
+subprocess.call([grep_bin] + options + [expr] + target)
+
+
+
+
+
+
+
+
