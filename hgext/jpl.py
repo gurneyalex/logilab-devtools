@@ -10,11 +10,9 @@ try:
 except AttributeError:
     enabled = demandimport._import is __import__
 demandimport.disable()
-import sys, os
-sys.path.insert(0, os.path.dirname(__file__))
-from jplproxy import build_proxy, RequestError
-from tasks import print_tasks
-from review import ask_review
+from logilab.devtools.jpl.jplproxy import build_proxy, RequestError
+from logilab.devtools.jpl.tasks import print_tasks
+from logilab.devtools.jpl.review import ask_review
 if enabled:
     demandimport.enable()
 
@@ -219,9 +217,18 @@ def askreview(ui, repo, *changesets, **opts):
     -U/--forge-url to specify a different url. The forge url can be
     permanently defined into one of the mercurial configuration file::
 
-    [lglb]
-    forge-url = https://www.cubicweb.org/
-    auth-mech = ...
+      [lglb]
+      forge-url = https://www.cubicweb.org/
+      auth-mech = signedrequest
+      auth-token = my token
+      auth-secret = 0123456789abcdef
+
+    or for kerberos authentication::
+
+      [lglb]
+      forge-url = https://my.intranet.com/
+      auth-mech = kerberos
+
     """
     changesets += tuple(opts.get('rev', []))
     if not changesets:
@@ -232,6 +239,6 @@ def askreview(ui, repo, *changesets, **opts):
     ctxhexs = (node.short(repo.lookup(rev)) for rev in revs)
 
     with build_proxy(ui, opts) as client:
-        print ask_review(client, ui, ctxhexs)
+        print ask_review(client, ctxhexs)
 
 

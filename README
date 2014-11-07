@@ -4,7 +4,9 @@ Logilab's development tools
 Set of tools which aims to help the developpement process, including :
 
   * tools to check and build source and/or Debian packages
-  * standard for zope and Python packages
+
+  * provides integration assistance to work with CubicWeb_, Mercurial_
+    and GuestRepo_.
 
 Set of elisp goodies including :
 
@@ -12,12 +14,6 @@ Set of elisp goodies including :
   * an emacs mode for ChangeLog files
   * a small set of emacs shortcuts used at logilab
 
-===============
- Logilab tools
-===============
-
-This tools set provides integration assistance to work with CubicWeb_,
-Mercurial_ and GuestRepo_.
 
 ingrsh.(z)sh
 ------------
@@ -45,14 +41,15 @@ They must be activated from a Mercurial_ configuration file::
   grmerge.executable = path/to/grmerge
   grmerge.args = $local $base $other -o $output
 
-hgext_jpl.py
+hgext/jpl.py
 ------------
+
+Mercurial_ extension that ease intercation with a JPL forge.
 
 Predicates
 ~~~~~~~~~~
 
-Mercurial_ extension that adds new predicates to the revset
-vocabulary. These predicates retrieve information from the project's forge
+These predicates retrieve information from the project's forge
 (cubicweb-jpl instance).
 
 "tasks"
@@ -78,7 +75,7 @@ The extension should be enabled from a Mercurial_ configuration file::
   forge = http://www.cubicweb.org
 
 .. note::
- 
+
   You can specify a default ``lglb/forge`` value in your main
   Mercurial configuration file (``~/.hgrc`` for Linux systems).  Then
   the local configuration file (``path/to/repository/.hg/hgrc``) can
@@ -91,7 +88,7 @@ Templates
   List of Strings. The text of the tasks and comments of a patch.
 
   Examples:
-  
+
   - display all tasks (and comments) of every patch::
 
       $ hg log --template='{tasks}\n'
