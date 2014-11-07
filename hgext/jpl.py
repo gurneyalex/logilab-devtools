@@ -12,7 +12,7 @@ except AttributeError:
 demandimport.disable()
 from logilab.devtools.jpl.jplproxy import build_proxy, RequestError
 from logilab.devtools.jpl.tasks import print_tasks
-from logilab.devtools.jpl.review import ask_review
+from logilab.devtools.jpl.review import ask_review, show_review
 if enabled:
     demandimport.enable()
 
@@ -24,7 +24,13 @@ colortable = {'jpl.tasks.patch': 'cyan',
               'jpl.tasks.task': '',
               'jpl.tasks.description': '',
               'jpl.tasks.comment': 'yellow',
-              'jpl.tasks.notask': 'green'}
+              'jpl.tasks.notask': 'green',
+              'jpl.cwuri': 'yellow',
+              'jpl.status.pending-review': 'red',
+              'jpl.status.in-progress': 'yellow',
+              'jpl.status.reviewed': 'green',
+              'jpl.status.applied': 'cyan',
+              }
 
 RQL = """
 Any PO, RC, P
@@ -236,4 +242,45 @@ def askreview(ui, repo, *changesets, **opts):
     with build_proxy(ui, opts) as client:
         print ask_review(client, ctxhexs)
 
+@command('^show-review', [
+    ('r', 'rev', [], _('show review status for the given revision(s)'), _('REV')),
+    ]  + cnxopts,
+    _('[OPTION]... [-r] REV...'))
+def showreview(ui, repo, *changesets, **opts):
+    """show review status for patches corresponding to specified revisions
+
+    By default, the revision used is the parent of the working
+    directory: use -r/--rev to specify a different revision.
+
+    By default, the forge url used is https://www.cubicweb.org/: use
+    -U/--forge-url to specify a different url. The forge url can be
+    permanently defined into one of the mercurial configuration file::
+
+      [lglb]
+      forge-url = https://www.cubicweb.org/
+      auth-mech = signedrequest
+      auth-token = my token
+      auth-secret = 0123456789abcdef
+
+    or for kerberos authentication::
+
+      [lglb]
+      forge-url = https://my.intranet.com/
+      auth-mech = kerberos
+
+    """
+    changesets += tuple(opts.get('rev', []))
+    if not changesets:
+        changesets = ('.')
+    revs = scmutil.revrange(repo, changesets)
+    if not revs:
+        raise util.Abort(_('no working directory: please specify a revision'))
+    ctxhexs = (node.short(repo.lookup(rev)) for rev in revs)
+
+    with build_proxy(ui, opts) as client:
+        rev = show_review(client, ctxhexs)
+        for pname, uri, status in  rev:
+            ui.write("{0}".format(uri), label='jpl.cwuri')
+            ui.write("\t[{0}]\n".format(status), label='jpl.status.{0}'.format(status))
+            ui.write(pname + '\n\n')
 
