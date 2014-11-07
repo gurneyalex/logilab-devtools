@@ -54,7 +54,7 @@ The extension should be enabled from a Mercurial_ configuration file::
   jpl =
 
   [lglb]
-  forge = http://www.cubicweb.org
+  forge-url = http://www.cubicweb.org
 
 .. note::
 
