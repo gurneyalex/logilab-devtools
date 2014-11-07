@@ -5,7 +5,7 @@ import itertools
 import sys
 enc = sys.stdout.encoding or 'ascii'
 
-from logilab.devtools.jplproxy import build_proxy, RequestError
+from logilab.devtools.jpl.jplproxy import build_proxy, RequestError
 
 INDENT = '  '
 
