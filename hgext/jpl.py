@@ -50,7 +50,6 @@ WHERE P patch_revision TIP,
       PO source_repository RP,
       TIP changeset RC,
       TIP hidden H,
-      PO name "%(project)s",
       NOT EXISTS(RE obsoletes TIP,
                  P patch_revision RE),
       T concerns PO,
@@ -76,10 +75,10 @@ from urllib import quote, urlopen
 
 def reviewed(repo, subset, x):
     """
-    return changesets that are linked to reviewed patch in the cwo forge
+    return changesets that are linked to reviewed patch in the jpl forge
     """
     mercurial.revset.getargs(x, 0, 0, _("reviewed takes no arguments"))
-    base_url = repo.ui.config('lglb', 'forge')
+    base_url = repo.ui.config('lglb', 'forge-url')
     url = '%s/view?vid=jsonexport&rql=rql:%s' % (base_url, quote(RQL))
     raw_data = urlopen(url)
     data = json.load(raw_data)
@@ -91,10 +90,8 @@ def inversion(repo, subset, x):
     return changesets that are linked to patches linked to tickets of given version+project
     """
     version = mercurial.revset.getargs(x, 1, 1, _("inversion takes one argument"))[0][1]
-    base_url = repo.ui.config('lglb', 'forge')
-    project = repo.ui.config('lglb', 'project')
-    url = '%s/view?vid=jsonexport&rql=rql:%s' % (base_url, quote(IVRQL % {'version': version,
-                                                                          'project': project}))
+    base_url = repo.ui.config('lglb', 'forge-url')
+    url = '%s/view?vid=jsonexport&rql=rql:%s' % (base_url, quote(IVRQL % {'version': version}))
     raw_data = urlopen(url)
     data = json.load(raw_data)
     all = set(short for po, short, p in data)
@@ -107,7 +104,7 @@ def tasks_predicate(repo, subset, x=None):
     The optional state arguments are task states to filter
     (default to 'todo').
     """
-    base_url = repo.ui.config('lglb', 'forge')
+    base_url = repo.ui.config('lglb', 'forge-url')
     states = None
     if x is not None:
         states = [val for typ, val in mercurial.revset.getlist(x)]
@@ -146,13 +143,11 @@ class _MockOutput(object):
             yield io.getvalue()
 
 def extsetup(ui):
-    if ui.config('lglb', 'forge'):
+    if ui.config('lglb', 'forge-url'):
         mercurial.revset.symbols['reviewed'] = reviewed
         mercurial.revset.symbols['tasks'] = tasks_predicate
+        mercurial.revset.symbols['inversion'] = inversion
         mercurial.templatekw.keywords['tasks'] = showtasks
-
-        if ui.config('lglb', 'project'):
-            mercurial.revset.symbols['inversion'] = inversion
 
 cnxopts  = [
     ('U', 'forge-url', '', _('base url of the forge (jpl) server'), _('URL')),
