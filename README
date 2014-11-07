@@ -44,13 +44,31 @@ They must be activated from a Mercurial_ configuration file::
 hgext/jpl.py
 ------------
 
-Mercurial_ extension that ease intercation with a JPL forge.
+A Mercurial_ extension that eases interaction with a JPL forge.
 
-Predicates
-~~~~~~~~~~
+The extension should be enabled from a Mercurial_ configuration file::
+
+  [extensions]
+  jpl = path/to/hgext/jpl.py
+  # or, if it has been installed via the debian package:
+  jpl =
+
+  [lglb]
+  forge = http://www.cubicweb.org
+
+.. note::
+
+  You can specify a default ``lglb/forge`` value in your main
+  Mercurial configuration file (``~/.hgrc`` for Linux systems).  Then
+  the local configuration file (``path/to/repository/.hg/hgrc``) can
+  override this setting.
+
+
+Revset functions
+~~~~~~~~~~~~~~~~
 
 These predicates retrieve information from the project's forge
-(cubicweb-jpl instance).
+(cubicweb-jpl instance) and are exposed as revset functions.
 
 "tasks"
   Changesets linked to tasks to be done.
@@ -66,20 +84,6 @@ Examples::
   $ hg log -r "reviewed()"
   $ hg log -r "inversion(3.18.0)"
 
-The extension should be enabled from a Mercurial_ configuration file::
-
-  [extensions]
-  jpl = path/to/hgext_jpl.py
-
-  [lglb]
-  forge = http://www.cubicweb.org
-
-.. note::
-
-  You can specify a default ``lglb/forge`` value in your main
-  Mercurial configuration file (``~/.hgrc`` for Linux systems).  Then
-  the local configuration file (``path/to/repository/.hg/hgrc``) can
-  override this setting.
 
 Templates
 ~~~~~~~~~
@@ -101,27 +105,18 @@ Templates
       --rev 'draft() and author(alain) and tasks() and not(reviewed())' \
       --template='{desc|firstline}\n{tasks % "{task|firstline}\n"}'
 
+
 Commands
 ~~~~~~~~
 
 tasks
   Displays tasks requested by reviewers on a patch on a forge.
 
+ask-review
+  Allows to ask review for a Patch produced by a changeset, eg.::
 
-hgext/tasks.py
---------------
-
-Displays tasks requested by reviewers on a patch on a forge.
-This script is equivalent to the ``hg tasks`` command.
-
-
-hgext/review.py
----------------
-
-Allows to put ask review for a Patch produced by a changeset, eg.::
-
-  $ hg ask-review # default to working directory's parent revision
-  $ hg ask-review -r "draft() and ::."
+    $ hg ask-review # default to working directory's parent revision
+    $ hg ask-review -r "draft() and ::."
 
 .. _CubicWeb: http://www.cubicweb.org
 .. _Mercurial: http://mercurial.selenic.com
