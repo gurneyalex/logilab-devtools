@@ -7,7 +7,6 @@ URL = 'https://www.cubicweb.org/'
 from contextlib import contextmanager
 from mercurial import util
 from mercurial.i18n import _
-from simplejson import JSONDecodeError
 from requests import ConnectionError, HTTPError
 
 import itertools
@@ -25,7 +24,7 @@ def wraprql(meth):
         try:
             reply.raise_for_status()
             return reply.json()
-        except JSONDecodeError:
+        except ValueError:
             print "ERROR:", reply.text
             print "REQ:", args, kwargs
             return None
