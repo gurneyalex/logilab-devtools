@@ -240,7 +240,8 @@ def askreview(ui, repo, *changesets, **opts):
     ctxhexs = (node.short(repo.lookup(rev)) for rev in revs)
 
     with build_proxy(ui, opts) as client:
-        print ask_review(client, ctxhexs)
+        ask_review(client, ctxhexs)
+        ui.write('OK\n')
 
 @command('^show-review', [
     ('r', 'rev', [], _('show review status for the given revision(s)'), _('REV')),
