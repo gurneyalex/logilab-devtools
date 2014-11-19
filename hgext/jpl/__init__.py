@@ -10,9 +10,9 @@ try:
 except AttributeError:
     enabled = demandimport._import is __import__
 demandimport.disable()
-from logilab.devtools.jpl.jplproxy import build_proxy, RequestError
-from logilab.devtools.jpl.tasks import print_tasks
-from logilab.devtools.jpl.review import ask_review, show_review
+from .jplproxy import build_proxy, RequestError
+from .tasks import print_tasks
+from .review import ask_review, show_review
 if enabled:
     demandimport.enable()
 
