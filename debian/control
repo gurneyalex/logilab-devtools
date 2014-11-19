@@ -49,7 +49,6 @@ Depends:
   ${misc:Depends},
   ${python:Depends},
   mercurial (>= 3.0.0),
-  python-logilab-devtools,
   python-cwclientlib,
 Suggests:
   python-requests-kerberos,
