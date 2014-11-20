@@ -17,8 +17,8 @@ def ask_review(client, revs):
     return client.rqlio(queries)
 
 def show_review(client, revs):
-    return client.rql(
+    return client.rqlio([(
         '''Any PN, URI, N WHERE P patch_revision R, R changeset IN ({revs}),
              P in_state S, S name N, P cwuri URI, P patch_name PN
-        '''.format(revs=','.join('%r' % rev for rev in revs)), vid='jsonexport')
+        '''.format(revs=','.join('%r' % rev for rev in revs)), {}),])[0]
 
