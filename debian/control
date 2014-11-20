@@ -9,7 +9,7 @@ Uploaders: Adrien Di Mascio <adrien.dimascio@logilab.fr>,
 Standards-Version: 3.9.3
 Build-Depends: debhelper (>= 9), python-all
 Build-Depends-Indep: python-support
-XS-Python-Version: >= 2.6
+X-Python-Version: >= 2.6
 Homepage: http://www.logilab.org/project/logilab-devtools
 Vcs-hg: http://hg.logilab.org/logilab/devtools
 Vcs-Browser: http://hg.logilab.org/logilab/devtools
@@ -17,11 +17,13 @@ Vcs-Browser: http://hg.logilab.org/logilab/devtools
 Package: python-logilab-devtools
 Architecture: all
 Recommends:
-  mercurial (>= 0.9.3)
+  mercurial (>= 2.8.0),
+  python-ndg-httpsclient,
 Depends:
   ${misc:Depends},
   ${python:Depends},
   python-logilab-common,
+  python-cwclientlib,
 Conflicts: devtools, simh, python-vcslib, logilab-packaging
 Replaces: devtools, python-vcslib, logilab-packaging
 Description: set of development tools used at Logilab
@@ -45,10 +47,12 @@ Package: mercurial-jpl
 Architecture: all
 Depends:
   ${misc:Depends},
+  ${python:Depends},
   mercurial (>= 3.0.0),
-  python-loglab-devtools
-Conflicts: devtools
-Replaces: devtools
+  python-logilab-devtools,
+  python-cwclientlib,
+Suggests:
+  python-requests-kerberos,
 Description: mercurial extensions to ease interaction with JPL-based forges
  This includes:
   * mercurial command to ask review for a changeset
