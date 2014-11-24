@@ -89,13 +89,18 @@ if __name__ == '__main__':
     results = Queue()
 
     all_files = []
+    slow_files = []
     for dirpath, dirnames, filenames in os.walk('.'):
         for f in filenames[::-1]: # test_ is slower that unittest_
-            if TF_RE.match(f) and not f.endswith('test_views.py'):
-                # test_views is so slow that it need to run early to ever complete
-                all_files.append(os.path.join(dirpath, f))
-    pending = set(all_files)
+            if TF_RE.match(f):
+                if f.endswith('test_views.py'):
+                    slow_files.append(os.path.join(dirpath, f))
+                else:
+                    # test_views is so slow that it need to run early to ever complete
+                    all_files.append(os.path.join(dirpath, f))
     random.shuffle(all_files)
+    all_files = slow_files + all_files
+    pending = set(all_files)
     for f in all_files:
         test_files.put(f)
 
