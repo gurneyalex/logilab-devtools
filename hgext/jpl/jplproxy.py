@@ -11,11 +11,6 @@ from requests import ConnectionError, HTTPError
 
 import itertools
 
-try:
-    import urllib3.contrib.pyopenssl
-    urllib3.contrib.pyopenssl.inject_into_urllib3()
-except ImportError:
-    pass
 from cwclientlib import cwproxy
 
 def wraprql(meth):
