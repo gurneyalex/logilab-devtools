@@ -53,6 +53,7 @@ ext_modules = getattr(__pkginfo__, 'ext_modules', None)
 install_requires = getattr(__pkginfo__, 'install_requires', None)
 dependency_links = getattr(__pkginfo__, 'dependency_links', [])
 py_modules = getattr(__pkginfo__, 'py_modules', [])
+py_packages = getattr(__pkginfo__ , 'packages', [])
 
 STD_BLACKLIST = ('CVS', '.svn', '.hg', 'debian', 'dist', 'build')
 
@@ -164,6 +165,7 @@ class MyInstallLib(install_lib.install_lib):
 
 def install(**kwargs):
     """setup entry point"""
+    packages = py_packages[:]
     if USE_SETUPTOOLS:
         if '--force-manifest' in sys.argv:
             sys.argv.remove('--force-manifest')
@@ -173,12 +175,12 @@ def install(**kwargs):
     if subpackage_of:
         package = subpackage_of + '.' + modname
         kwargs['package_dir'] = {package : '.'}
-        packages = [package] + get_packages(os.getcwd(), package)
+        packages += [package] + get_packages(os.getcwd(), package)
         if USE_SETUPTOOLS:
             kwargs['namespace_packages'] = [subpackage_of]
     else:
         kwargs['package_dir'] = {modname : '.'}
-        packages = [modname] + get_packages(os.getcwd(), modname)
+        packages += [modname] + get_packages(os.getcwd(), modname)
     if USE_SETUPTOOLS and install_requires:
         kwargs['install_requires'] = install_requires
         kwargs['dependency_links'] = dependency_links
