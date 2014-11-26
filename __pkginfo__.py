@@ -39,6 +39,6 @@ scripts = [
     'bin/pygrep',
     ]
 
-py_modules=['hgext.jpl']
+packages = ['hgext.jpl']
 
 install_requires = ['logilab-common']
