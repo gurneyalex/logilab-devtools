@@ -18,14 +18,11 @@ Package: python-logilab-devtools
 Architecture: all
 Recommends:
   mercurial (>= 2.8.0),
-  python-ndg-httpsclient,
 Depends:
   ${misc:Depends},
   ${python:Depends},
   python-logilab-common,
   python-cwclientlib,
-Conflicts: devtools, simh, python-vcslib, logilab-packaging
-Replaces: devtools, python-vcslib, logilab-packaging
 Description: set of development tools used at Logilab
  Set of tools which aims to help the developpement process, including:
   * tools to run unit tests in parallel
