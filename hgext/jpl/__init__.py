@@ -1,4 +1,48 @@
+# jpl - cubicweb-vcreview interaction feature for mercurial
+#
+# copyright 2014 LOGILAB S.A. (Paris, FRANCE), all rights reserved.
+# contact http://www.logilab.fr/ -- mailto:contact@logilab.fr
+#
+# This software may be used and distributed according to the terms of the
+# GNU General Public License version 2 or any later version.
 
+'''commands and revset functions to interact with a cubicweb-vcreview code review application
+
+This extension lets you query and change the review status of patches modeling
+mercurial changesets.
+
+The forge url can be permanently defined into one of the mercurial
+configuration file::
+
+  [lglb]
+  forge-url = https://www.cubicweb.org/
+  auth-mech = signedrequest
+  auth-token = my token
+  auth-secret = 0123456789abcdef
+
+or for kerberos authentication::
+
+  [lglb]
+  forge-url = https://my.intranet.com/
+  auth-mech = kerberos
+
+Note that you need `python-requests-kerberos`_ for this later
+configuration to work.
+
+You may also need `python-ndg-httpsclient`_ and `python-openssl`_ if
+the forge application is using a SNI_ ssl configuration (ie. if you
+get errors like::
+
+  abort: error: hostname 'www.logilab.org' doesn't match either of
+         'demo.cubicweb.org', 'cubicweb.org'
+
+.. _`python-requests-kerberos`: https://pypi.python.org/pypi/requests-kerberos
+.. _`python-ndg-httpsclient`: https://pypi.python.org/pypi/ndg-httpsclient
+.. _`python-openssl`:https://pypi.python.org/pypi/pyOpenSSL
+.. _SNI: https://en.wikipedia.org/wiki/Server_Name_Indication
+.. _`cwclientlib: https://www.cubicweb.org/project/cwclientlib
+
+'''
 from cStringIO import StringIO
 from mercurial import cmdutil, scmutil, util, node, demandimport
 from mercurial.i18n import _
@@ -215,22 +259,6 @@ def askreview(ui, repo, *changesets, **opts):
     By default, the revision used is the parent of the working
     directory: use -r/--rev to specify a different revision.
 
-    By default, the forge url used is https://www.cubicweb.org/: use
-    -U/--forge-url to specify a different url. The forge url can be
-    permanently defined into one of the mercurial configuration file::
-
-      [lglb]
-      forge-url = https://www.cubicweb.org/
-      auth-mech = signedrequest
-      auth-token = my token
-      auth-secret = 0123456789abcdef
-
-    or for kerberos authentication::
-
-      [lglb]
-      forge-url = https://my.intranet.com/
-      auth-mech = kerberos
-
     """
     changesets += tuple(opts.get('rev', []))
     if not changesets:
@@ -253,22 +281,6 @@ def showreview(ui, repo, *changesets, **opts):
 
     By default, the revision used is the parent of the working
     directory: use -r/--rev to specify a different revision.
-
-    By default, the forge url used is https://www.cubicweb.org/: use
-    -U/--forge-url to specify a different url. The forge url can be
-    permanently defined into one of the mercurial configuration file::
-
-      [lglb]
-      forge-url = https://www.cubicweb.org/
-      auth-mech = signedrequest
-      auth-token = my token
-      auth-secret = 0123456789abcdef
-
-    or for kerberos authentication::
-
-      [lglb]
-      forge-url = https://my.intranet.com/
-      auth-mech = kerberos
 
     """
     changesets += tuple(opts.get('rev', []))
