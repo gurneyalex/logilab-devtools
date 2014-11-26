@@ -7,7 +7,7 @@ Uploaders: Adrien Di Mascio <adrien.dimascio@logilab.fr>,
            David Douard <david.douard@logilab.fr>,
            Julien Cristau <jcristau@debian.org>
 Standards-Version: 3.9.3
-Build-Depends: debhelper (>= 9), python-all
+Build-Depends: debhelper (>= 9), python-all (>= 2.6.5)
 Build-Depends-Indep: python-support
 X-Python-Version: >= 2.6
 Homepage: http://www.logilab.org/project/logilab-devtools
