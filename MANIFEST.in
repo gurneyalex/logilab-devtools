@@ -1,12 +1,17 @@
 exclude .hgignore
 recursive-exclude debian *
-recursive-exclude debian.hardy *
-recursive-exclude logilab_devtools.egg-info *
 
-include bin/lgp
-include bin/changelog
-include bin/update_gettext
 include bin/lsprofcalltree
+include bin/grmerge
+include bin/gmmerge
+include bin/tagsmerge
+include bin/ingrsh.zsh
+include bin/ingrsh.sh
+include bin/nicetests
+include bin/jobtest
+include bin/pygrep
+
+include hgext/jpl/*.py
 
 include elisp/*.el
 include elisp/startup
@@ -14,8 +19,8 @@ include elisp/startup
 include doc/*.xml
 include doc/*.txt
 include doc/makefile
-
-recursive-include templates *.txt *.py 
+recursive-include doc *.rst
+recursive-include templates *.txt *.py
 
 recursive-include test/data *
 

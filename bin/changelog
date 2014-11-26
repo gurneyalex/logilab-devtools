@@ -1,6 +1,0 @@
-#!/usr/bin/python
-
-from logilab.devtools import changelog
-import sys
-changelog.run(sys.argv[1:])
-

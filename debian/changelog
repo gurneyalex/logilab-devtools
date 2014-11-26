@@ -1,3 +1,12 @@
+logilab-devtools (0.23.0-1) unstable; urgency=low
+
+  * extract lgp into a dedicated project (logilab-packaging)
+  * new upstream release
+  * update to dh_python2
+  * update to 3.9.3
+
+ -- David Douard <david.douard@logilab.fr>  Fri, 07 Nov 2014 15:30:48 +0100
+
 logilab-devtools (0.22.2-1) unstable; urgency=low
 
   * new upstream release

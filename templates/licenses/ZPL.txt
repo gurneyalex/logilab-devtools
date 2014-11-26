@@ -1,3 +1,0 @@
-This software is distributed under the term of the Zope Public License version
-2.0. On Debian systems, the complete text of the ZPL 2.0 may be found in
-/usr/share/doc/zope2.7/copyright

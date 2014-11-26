@@ -1,3 +1,0 @@
-shell-script-fails-syntax-check ./usr/share/pyshared/logilab/devtools/templates/debhelper
-shell-script-fails-syntax-check ./usr/share/pyshared/logilab/devtools/templates/elisp.emacsen-remove
-shell-script-fails-syntax-check ./usr/share/pyshared/logilab/devtools/templates/elisp.emacsen-install

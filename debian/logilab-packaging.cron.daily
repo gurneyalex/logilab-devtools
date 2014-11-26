@@ -1,4 +1,0 @@
-#!/bin/sh
-
-# Update image
-/usr/bin/lgp setup -qq -c update -d all -a any

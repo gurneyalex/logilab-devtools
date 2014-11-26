@@ -1,4 +1,4 @@
-# Copyright (c) 2003-2013 LOGILAB S.A. (Paris, FRANCE).
+# Copyright (c) 2003-2014 LOGILAB S.A. (Paris, FRANCE).
 # http://www.logilab.fr/ -- mailto:contact@logilab.fr
 
 # This program is free software; you can redistribute it and/or modify it under
@@ -17,7 +17,7 @@
 
 modname = 'devtools'
 distname = 'logilab-devtools'
-numversion = (0, 22, 2)
+numversion = (0, 23, 0)
 version = '.'.join([str(num) for num in numversion])
 
 license = 'GPL'
@@ -30,16 +30,15 @@ mailinglist = "mailto://python-projects@lists.logilab.org"
 
 subpackage_of = 'logilab'
 
-from os.path import join, isdir
-
-include_dirs = ['templates', join('test', 'data')]
-
 scripts = [
-    # logilab-packaging
-    'bin/changelog',
-    'bin/update_gettext',
-    'bin/lgp',
     'bin/lsprofcalltree',
+    'bin/grmerge',
+    'bin/gmmerge',
+    'bin/tagsmerge',
+    'bin/jobtest',
+    'bin/pygrep',
     ]
+
+py_modules=['hgext.jpl']
 
 install_requires = ['logilab-common']

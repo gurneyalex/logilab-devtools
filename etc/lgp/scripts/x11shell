@@ -1,9 +1,0 @@
-#!/bin/sh -x
-
-# see http://www.logilab.org/ticket/18194
-apt-get install xauth
-COOKIE=$(xauth list $DISPLAY)
-xauth -v add $COOKIE
-
-export DISPLAY=$DISPLAY
-env | sort

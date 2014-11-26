@@ -1,8 +1,0 @@
-#!/bin/sh
-
-# HTTP_PROXY can be defined in /etc/lgp/pbuilderrc.local
-if [ -n "$HTTP_PROXY" ]; then
-	cat > /etc/apt/apt.conf.d/99proxy <<EOF
-	Acquire::http { Proxy "$HTTP_PROXY"; };
-EOF
-fi

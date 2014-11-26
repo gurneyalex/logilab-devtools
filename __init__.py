@@ -1,3 +1,3 @@
 """Logilab's developpment tools"""
 
-BASE_EXCLUDE = ('CVS', '.svn', '.hg', 'bzr')
+BASE_EXCLUDE = ('CVS', '.svn', '.hg', 'bzr', '.git')

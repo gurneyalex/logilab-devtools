@@ -1,6 +1,0 @@
-#!/bin/sh -ex
-
-PACKAGE=$(apt-cache show $1 | grep '^Version:' | sed -n "2s/^Version: /$1=/p;")
-
-apt-get install --assume-yes --fix-broken --force-yes $PACKAGE
-apt-get upgrade --assume-yes --force-yes

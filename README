@@ -108,12 +108,20 @@ tasks
   Displays tasks requested by reviewers on a patch on a forge.
 
 
-tasks.py
---------
+hgext/tasks.py
+--------------
 
 Displays tasks requested by reviewers on a patch on a forge.
 This script is equivalent to the ``hg tasks`` command.
 
+
+hgext/review.py
+---------------
+
+Allows to put ask review for a Patch produced by a changeset, eg.::
+
+  $ hg ask-review # default to working directory's parent revision
+  $ hg ask-review -r "draft() and ::."
 
 .. _CubicWeb: http://www.cubicweb.org
 .. _Mercurial: http://mercurial.selenic.com

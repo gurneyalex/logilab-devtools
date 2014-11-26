@@ -1,8 +1,0 @@
-#!/bin/sh
-
-# repository is not always existing for all images
-# consider index files as optional and exit with error status
-set +e
-
-apt-get install -y --force-yes wget ca-certificates >/dev/null 2>&1
-wget -q https://www.logilab.fr/logilab-dists-key.asc -O - | apt-key add - > /dev/null
