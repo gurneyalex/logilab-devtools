@@ -156,4 +156,6 @@ if __name__ == '__main__':
             sys.stdout.write(colortable.get(label, ''))
             sys.stdout.write(msg)
             sys.stdout.write(colortable.get('reset', ''))
-    print_tasks(output(), revs, opts)
+    ui = output()
+    with build_proxy(ui, opts) as client:
+        print_tasks(client, ui, revs, opts)
