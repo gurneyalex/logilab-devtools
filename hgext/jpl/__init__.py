@@ -130,10 +130,11 @@ def tasks_predicate(repo, subset, x=None):
 def showtasks(**args):
     """:tasks: List of Strings. The text of the tasks and comments of a patch."""
     output = _MockOutput()
-    try:
-        print_tasks(output, iter([node.short(args['ctx'].node())]), {})
-    except RequestError:
-        return ''
+    with build_proxy(output, args) as client:
+        try:
+            print_tasks(client, output, iter([node.short(args['ctx'].node())]), {})
+        except RequestError:
+            return ''
     return mercurial.templatekw.showlist('task', list(output), **args)
     #return str(output).strip()
 
