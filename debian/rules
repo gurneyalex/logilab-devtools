@@ -5,59 +5,51 @@
 # adapted by Logilab for automatic generation by debianize
 # (part of the devtools project, http://www.logilab.org/projects/devtools)
 #
-# Copyright (c) 2003-2008 LOGILAB S.A. (Paris, FRANCE).
+# Copyright (c) 2003-2014 LOGILAB S.A. (Paris, FRANCE).
 # http://www.logilab.fr/ -- mailto:contact@logilab.fr
 
 # Uncomment this to turn on verbose mode.
 export DH_VERBOSE=1
 
 build: build-stamp
-build-stamp: 
+build-stamp:
 	dh_testdir
 	NO_SETUPTOOLS=1 python setup.py -q build
 	touch build-stamp
 
-clean: 
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp configure-stamp
 	rm -rf build
 	find . -name "*.pyc" | xargs rm -f
-	rm -f $(basename $(wildcard debian/*.in))
 	rm -f changelog.gz
 	dh_clean
 
-install: build $(basename $(wildcard debian/*.in))
+install: build
 	dh_testdir
 	dh_testroot
 	dh_clean
 	dh_installdirs
-	# prefix = debian/tmp/logilab-packaging/ ?
 	NO_SETUPTOOLS=1 python setup.py install --no-compile --prefix=debian/tmp/usr
 
 	dh_install -vi
 
-%: %.in
-	sed "s/PY_VERSION/$(shell pyversions -d)/g" < $< > $@
-
 # Build architecture-independent files here.
 binary-indep: build install
-	dh_testdir 
-	dh_testroot 
+	dh_testdir
+	dh_testroot
 	gzip -9 -c ChangeLog > changelog.gz
 	dh_installchangelogs -i
-	dh_installexamples -i
 	dh_installdocs -i README changelog.gz
-	dh_installman -i
-	dh_installcron -i
 	-dh_lintian -i
 	dh_installemacsen -plogilab-elisp
-	dh_pysupport -i -Nlogilab-elisp 
+	dh_pysupport -i -Nlogilab-elisp
 	dh_link -i
 	dh_compress -i -X.py -X.ini -X.xml -Xtest
 	dh_fixperms -i
 	dh_installdeb -i
-	dh_gencontrol -i 
+	dh_gencontrol -i
 	dh_md5sums -i
 	dh_builddeb -i
 

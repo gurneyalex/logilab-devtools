@@ -1,5 +1,0 @@
-#!/bin/sh
-
-if command -v debconf-set-selections >/dev/null; then
-    echo man-db man-db/auto-update boolean false | debconf-set-selections
-fi

@@ -1,6 +1,0 @@
-#!/bin/sh -x
-
-export IGNOREEOF=5
-export TERM=linux
-
-/bin/sh

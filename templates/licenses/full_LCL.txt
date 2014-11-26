@@ -1,3 +1,0 @@
-Logilab Closed source License. This code is *NOT* open-source. Usage of this
-code is subject to a licence agreement. If you want to use it, you should
-contact logilab's sales service at commercial@logilab.fr .

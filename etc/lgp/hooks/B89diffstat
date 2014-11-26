@@ -1,6 +1,0 @@
-#!/bin/sh -x
-
-# Debian specific diff statistics
-apt-get install -y --force-yes diffstat >/dev/null 2>&1
-
-diffstat $HOME/*.diff.gz 2>/dev/null

@@ -1,4 +1,0 @@
-recursive-include bin *.bat
-include *.xml
-exclude bad_file.xml
-recursive-exclude basetgz *

@@ -52,6 +52,7 @@ include_dirs = getattr(__pkginfo__, 'include_dirs', [])
 ext_modules = getattr(__pkginfo__, 'ext_modules', None)
 install_requires = getattr(__pkginfo__, 'install_requires', None)
 dependency_links = getattr(__pkginfo__, 'dependency_links', [])
+py_modules = getattr(__pkginfo__, 'py_modules', [])
 
 STD_BLACKLIST = ('CVS', '.svn', '.hg', 'debian', 'dist', 'build')
 
@@ -193,6 +194,7 @@ def install(**kwargs):
                  scripts = ensure_scripts(scripts),
                  data_files = data_files,
                  ext_modules = ext_modules,
+                 py_modules=py_modules,
                  cmdclass = {'install_lib': MyInstallLib},
                  **kwargs
                  )

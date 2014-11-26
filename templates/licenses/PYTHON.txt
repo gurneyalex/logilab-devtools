@@ -1,3 +1,0 @@
-This software is distributed under the term of the Python Licence.
-On Debian systems, the complete text of the Python Licence may be
-found in /usr/share/doc/python2.3/copyright

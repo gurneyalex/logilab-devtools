@@ -1,4 +1,0 @@
-#!/bin/sh
-
-# Clean caches
-/usr/bin/lgp setup -qq -c clean -d all -a any

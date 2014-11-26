@@ -2,31 +2,33 @@ Source: logilab-devtools
 Section: python
 Priority: optional
 Maintainer: Logilab S.A. <contact@logilab.fr>
-Uploaders: Alexandre Fayolle <afayolle@debian.org>,
-           Adrien Di Mascio <adrien.dimascio@logilab.fr>,
+Uploaders: Adrien Di Mascio <adrien.dimascio@logilab.fr>,
            Sylvain Thenault <sylvain.thenault@logilab.fr>,
-           Julien Jehannet <julien.jehannet@logilab.fr>,
+           David Douard <david.douard@logilab.fr>,
            Julien Cristau <jcristau@debian.org>
-Build-Depends: debhelper (>= 7.0), python-all
+Standards-Version: 3.9.3
+Build-Depends: debhelper (>= 9), python-all
 Build-Depends-Indep: python-support
-Standards-Version: 3.8.0
 XS-Python-Version: >= 2.6
 Homepage: http://www.logilab.org/project/logilab-devtools
 Vcs-hg: http://hg.logilab.org/logilab/devtools
 Vcs-Browser: http://hg.logilab.org/logilab/devtools
 
-Package: logilab-packaging
+Package: python-logilab-devtools
 Architecture: all
-Suggests: logilab-doctools, pymacs, emacsen-common, debian-archive-keyring
-Recommends: mercurial (>= 0.9.3), subversion, debinstall, diffstat
-Depends: ${misc:Depends}, ${python:Depends}, python, python-debian, lintian, pbuilder, devscripts, debhelper,
-         python-logilab-common, sudo, cdebootstrap, python-apt
-Conflicts: devtools, simh, python-vcslib
-Replaces: devtools, python-vcslib
+Recommends:
+  mercurial (>= 0.9.3)
+Depends:
+  ${misc:Depends},
+  ${python:Depends},
+  python-logilab-common,
+Conflicts: devtools, simh, python-vcslib, logilab-packaging
+Replaces: devtools, python-vcslib, logilab-packaging
 Description: set of development tools used at Logilab
- Set of tools which aims to help the developpement process, including :
-  * tools to check and build source and/or Debian packages
-  * standard for zope and Python packages
+ Set of tools which aims to help the developpement process, including:
+  * tools to run unit tests in parallel
+  * tools to ease the merge of branches in a guestrepo shell
+  * tools to help working with multiple guestrepo shells
 
 Package: logilab-elisp
 Architecture: all
@@ -39,3 +41,16 @@ Description: emacs lisp code for logilab development tools
   * an emacs mode for ChangeLog files
   * a small set of emacs shortcuts used at logilab
 
+Package: mercurial-jpl
+Architecture: all
+Depends:
+  ${misc:Depends},
+  mercurial (>= 3.0.0),
+  python-loglab-devtools
+Conflicts: devtools
+Replaces: devtools
+Description: mercurial extensions to ease interaction with JPL-based forges
+ This includes:
+  * mercurial command to ask review for a changeset
+  * mercurial command to list review feedback on a chageset
+  * mercurial revset functions

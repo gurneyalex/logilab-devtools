@@ -1,8 +1,0 @@
-etc/lgp
-etc/lgp/apt.conf.d
-usr/bin
-var/cache/lgp/buildd
-var/lib/logilab-packaging
-var/lib/logilab-packaging/hooks
-var/lib/logilab-packaging/scripts
-usr/share/doc/logilab-packaging/examples

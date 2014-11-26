@@ -1,9 +1,0 @@
-#!/bin/sh -x
-
-# raise an error if a file is missing
-set -e
-
-# run debc on generated changes files
-apt-get install -y --force-yes devscripts >/dev/null 2>&1
-
-debc $HOME/*.changes
