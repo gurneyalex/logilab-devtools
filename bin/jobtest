@@ -16,7 +16,7 @@ PROCESS = 8
 
 #TF_RE = re.compile('^(unit)?test_.*\.py$')
 TF_RE = re.compile('^(unit)?test_.*\.py$')
-TEST_TOOL = 'pytest'
+TEST_TOOL = os.environ.get('TEST_TOOL', 'pytest')
 
 
 def consumer(q_in, q_out):
