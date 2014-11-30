@@ -16,7 +16,7 @@ PROCESS = 8
 
 #TF_RE = re.compile('^(unit)?test_.*\.py$')
 TF_RE = re.compile('^(unit)?test_.*\.py$')
-TEST_TOOL = os.environ.get('TEST_TOOL', 'pytest')
+TEST_TOOL = os.environ.get('TEST_TOOL', 'pytest').split()
 
 
 def consumer(q_in, q_out):
@@ -35,7 +35,7 @@ def consumer(q_in, q_out):
 
 
 def run_test(t_file):
-    call = [TEST_TOOL, t_file]
+    call = TEST_TOOL + [t_file]
     err_file = t_file + '.err'
     with open(err_file, 'w') as result_file:
         test_run = Popen(call, stdout=result_file, stderr=result_file)
