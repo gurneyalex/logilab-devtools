@@ -18,7 +18,7 @@ from mercurial import config, extensions, hg, ui, util, node, error
 
 from mercurial import hg, ui
 
-from logilab.devtools.gr_ext.grutils import load_guestrepo, to_gr_entry, copy_into_root
+from logilab.devtools.grutils import load_guestrepo, to_gr_entry, copy_into_root
 
 
 def grmerge(local, base, other):

@@ -19,7 +19,7 @@ from itertools import chain
 
 from mercurial import hg, ui
 
-from logilab.devtools.gr_ext.grutils import load_guestrepo, to_mapping_entry, copy_into_root
+from logilab.devtools.grutils import load_guestrepo, to_mapping_entry, copy_into_root
 
 
 def gmmerge(local, other):
