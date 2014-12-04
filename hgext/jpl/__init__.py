@@ -293,8 +293,9 @@ def showreview(ui, repo, *changesets, **opts):
 
     with build_proxy(ui, opts) as client:
         rev = show_review(client, ctxhexs)
-        for pname, uri, status in  rev:
+        for pname, uri, status, victims in  rev:
             ui.write("{0}".format(uri), label='jpl.cwuri')
-            ui.write("\t[{0}]\n".format(status), label='jpl.status.{0}'.format(status))
+            ui.write("\t[{0}]".format(status), label='jpl.status.{0}'.format(status))
+            ui.write("\t{0}\n".format(victims), label='jpl.reviewers')
             ui.write(pname + '\n\n')
 
