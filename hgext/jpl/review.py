@@ -22,3 +22,14 @@ def show_review(client, revs):
              P in_state S, S name N, P cwuri URI, P patch_name PN, P patch_reviewer U?, U login L
         '''.format(revs=','.join('%r' % rev for rev in revs)), {}),])[0]
 
+def sudo_make_me_a_ticket(client, ctx):
+    query = '''INSERT Ticket T: T concerns PROJ, T title %(title)s, T description %(desc)s WHERE REV from_repository REPO, PROJ source_repository REPO, REV changeset %(cs)s'''
+    desc = ctx.description()
+    if not desc:
+        raise Exception('changeset has no description')
+    args = {
+        'title': desc.splitlines()[0],
+        'desc': desc,
+        'cs': str(ctx),
+    }
+    return client.rqlio([(query, args)])

@@ -56,7 +56,7 @@ except AttributeError:
 demandimport.disable()
 from .jplproxy import build_proxy, RequestError
 from .tasks import print_tasks
-from .review import ask_review, show_review
+from .review import ask_review, show_review, sudo_make_me_a_ticket
 if enabled:
     demandimport.enable()
 
@@ -299,3 +299,19 @@ def showreview(ui, repo, *changesets, **opts):
             ui.write("\t{0}\n".format(victims), label='jpl.reviewers')
             ui.write(pname + '\n\n')
 
+@command('^make-ticket', [
+    ('r', 'rev', [], _('create a ticket for the given revision'), _('REV')),
+    ] + cnxopts,
+    _('[OPTION]... [-r] REV'))
+def make_ticket(ui, repo, *changesets, **opts):
+    changesets += tuple(opts.get('rev', []))
+    if not changesets:
+        changesets = ('.',)
+    revs = scmutil.revrange(repo, changesets)
+    if not revs:
+        raise util.Abort(_('no working directory: please specify a revision'))
+
+    with build_proxy(ui, opts) as client:
+        for rev in revs:
+            ticket = sudo_make_me_a_ticket(client, repo[rev])
+            ui.write("{0} {1}\n".format(rev, ticket[0][0]))
