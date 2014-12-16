@@ -49,7 +49,7 @@ A Mercurial_ extension that eases interaction with a JPL forge.
 The extension should be enabled from a Mercurial_ configuration file::
 
   [extensions]
-  jpl = path/to/hgext/jpl.py
+  jpl = path/to/hgext/jpl/
   # or, if it has been installed via the debian package:
   jpl =
 
