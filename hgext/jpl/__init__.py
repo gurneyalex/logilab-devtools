@@ -316,5 +316,5 @@ def make_ticket(ui, repo, *changesets, **opts):
 
     with build_proxy(ui, opts) as client:
         for rev in revs:
-            ticket = sudo_make_me_a_ticket(client, repo[rev], opts.get('done_in', ''))
+            ticket = sudo_make_me_a_ticket(client, repo, rev, opts.get('done_in', ''))
             ui.write("{0} {1}\n".format(rev, ticket[0][0]))
