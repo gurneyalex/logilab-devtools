@@ -297,7 +297,7 @@ def showreview(ui, repo, *changesets, **opts):
             ui.write("{0}".format(uri), label='jpl.cwuri')
             ui.write("\t[{0}]".format(status), label='jpl.status.{0}'.format(status))
             ui.write("\t{0}\n".format(victims), label='jpl.reviewers')
-            ui.write(pname + '\n\n')
+            ui.write(pname.encode('utf-8') + '\n\n')
 
 @command('^make-ticket', [
     ('r', 'rev', [], _('create a ticket for the given revision'), _('REV')),
