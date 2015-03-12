@@ -296,13 +296,34 @@ def showreview(ui, repo, *changesets, **opts):
 
     with build_proxy(ui, opts) as client:
         rev = show_review(client, ctxhexs, committer)
-        for pname, eid, rid, status, victims in  rev:
-            uri = client.buildurl(str(eid))
-            ui.write("{0}".format(uri), label='jpl.cwuri')
-            ui.write(" {0}".format(rid))
-            ui.write("\t[{0}]".format(status), label='jpl.status.{0}'.format(status))
-            ui.write("\t{0}\n".format(victims), label='jpl.reviewers')
-            ui.write(pname.encode('utf-8') + '\n\n')
+        _format_review_result(ui, rev)
+
+def _format_review_result(ui, revs):
+    """Display a formatted patch review list"""
+    for pname, eid, rid, status, victims in  rev:
+        uri = client.buildurl(str(eid))
+        ui.write("{0}".format(uri), label='jpl.cwuri')
+        ui.write(" {0}".format(rid))
+        ui.write("\t[{0}]".format(status), label='jpl.status.{0}'.format(status))
+        ui.write("\t{0}\n".format(victims), label='jpl.reviewers')
+        ui.write(pname.encode('utf-8') + '\n\n')
+
+@command('^backlog', [
+    ('c', 'committer', '', _('login of the committer in JPL forge'), _('LOGIN')),
+    ]  + cnxopts,
+    _('[OPTION]... -c LOGIN'))
+def backlog(ui, repo, *changesets, **opts):
+    """show the backlog (draft changesets) of specified committer in the form
+    of a review list.
+    """
+    revs = repo.revs('draft()')
+    ctxhexs = (node.short(repo.lookup(rev)) for rev in revs)
+
+    committer = opts.get('committer', None)
+
+    with build_proxy(ui, opts) as client:
+        rev = show_review(client, ctxhexs, committer)
+        _format_review_result(ui, rev)
 
 @command('^assign', [
     ('r', 'rev', [], _('revision(s) indentifying patch(es) to be assigned to committer'), _('REV')),
