@@ -56,7 +56,7 @@ except AttributeError:
 demandimport.disable()
 from .jplproxy import build_proxy, RequestError
 from .tasks import print_tasks
-from .review import ask_review, show_review, sudo_make_me_a_ticket
+from .review import ask_review, show_review, sudo_make_me_a_ticket, assign
 if enabled:
     demandimport.enable()
 
@@ -298,6 +298,33 @@ def showreview(ui, repo, *changesets, **opts):
             ui.write("\t[{0}]".format(status), label='jpl.status.{0}'.format(status))
             ui.write("\t{0}\n".format(victims), label='jpl.reviewers')
             ui.write(pname.encode('utf-8') + '\n\n')
+
+@command('^assign', [
+    ('r', 'rev', [], _('revision(s) indentifying patch(es) to be assigned to committer'), _('REV')),
+    ('c', 'committer', '', _('login of the committer in JPL forge'), _('LOGIN')),
+    ]  + cnxopts,
+    _('[OPTION]... [-r] REV... -c LOGIN'))
+def patch_assign(ui, repo, *changesets, **opts):
+    """Assign patches corresponding to specified revisions to a committer.
+
+    By default, the revision used is the parent of the working
+    directory: use -r/--rev to specify a different revision.
+    """
+    changesets += tuple(opts.get('rev', []))
+    if not changesets:
+        changesets = ('.')
+    revs = scmutil.revrange(repo, changesets)
+    if not revs:
+        raise util.Abort(_('no working directory: please specify a revision'))
+    ctxhexs = (node.short(repo.lookup(rev)) for rev in revs)
+
+    committer = opts.get('committer', None)
+    if not committer:
+        raise util.Abort(_('unspecified committer login (-c LOGIN)'))
+
+    with build_proxy(ui, opts) as client:
+        assign(client, ctxhexs, committer)
+        ui.write('OK\n')
 
 @command('^make-ticket', [
     ('r', 'rev', [], _('create a ticket for the given revision'), _('REV')),
