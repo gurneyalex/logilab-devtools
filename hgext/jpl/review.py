@@ -16,11 +16,16 @@ def ask_review(client, revs):
     queries = [builders.build_trinfo(eid[0], 'ask review') for eid in eids]
     return client.rqlio(queries)
 
-def show_review(client, revs):
-    return client.rqlio([(
-        '''Any PN, P, N, GROUP_CONCAT(L) GROUPBY PN,P,N WHERE P patch_revision R, R changeset IN ({revs}),
-             P in_state S, S name N, P patch_name PN, P patch_reviewer U?, U login L
-        '''.format(revs=','.join('%r' % rev for rev in revs)), {}),])[0]
+def show_review(client, revs, committer=None):
+    query = '''Any PN, P, N, GROUP_CONCAT(L) GROUPBY PN,P,N WHERE
+                P patch_revision R, R changeset IN ({revs}), P in_state S,
+                S name N, P patch_name PN, P patch_reviewer U?,
+                U login L'''
+    fmt = {'revs': ','.join('%r' % rev for rev in revs)}
+    if committer:
+        query += ', P patch_committer PC, PC login "{committer}"'
+        fmt['committer'] = committer
+    return client.rqlio([(query.format(**fmt), {})])[0]
 
 def assign(client, revs, committer):
     """Assign patches corresponding to specified revisions to specified committer.

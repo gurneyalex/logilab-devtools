@@ -274,6 +274,7 @@ def askreview(ui, repo, *changesets, **opts):
 
 @command('^show-review', [
     ('r', 'rev', [], _('show review status for the given revision(s)'), _('REV')),
+    ('c', 'committer', '', _('login of the committer in JPL forge'), _('LOGIN')),
     ]  + cnxopts,
     _('[OPTION]... [-r] REV...'))
 def showreview(ui, repo, *changesets, **opts):
@@ -291,8 +292,10 @@ def showreview(ui, repo, *changesets, **opts):
         raise util.Abort(_('no working directory: please specify a revision'))
     ctxhexs = (node.short(repo.lookup(rev)) for rev in revs)
 
+    committer = opts.get('committer', None)
+
     with build_proxy(ui, opts) as client:
-        rev = show_review(client, ctxhexs)
+        rev = show_review(client, ctxhexs, committer)
         for pname, eid, status, victims in  rev:
             uri = client.buildurl(str(eid))
             ui.write("{0}".format(uri), label='jpl.cwuri')
