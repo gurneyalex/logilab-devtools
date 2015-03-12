@@ -22,6 +22,20 @@ def show_review(client, revs):
              P in_state S, S name N, P cwuri URI, P patch_name PN, P patch_reviewer U?, U login L
         '''.format(revs=','.join('%r' % rev for rev in revs)), {}),])[0]
 
+def assign(client, revs, committer):
+    """Assign patches corresponding to specified revisions to specified committer.
+    """
+    revstr = ','.join('%r'%rev for rev in revs)
+    if revstr.count(',') > 0:
+        revq = 'IN ({revs})'.format(revs=revstr)
+    else:
+        revq = revstr
+    query = '''SET P patch_committer U WHERE P patch_revision R,
+                                             R changeset {revq},
+                                             U login '{login}'
+            '''.format(revq=revq, login=committer)
+    return client.rqlio([(query, {})])[0]
+
 def sudo_make_me_a_ticket(client, repo, rev, version):
     query = '''INSERT Ticket T: T concerns PROJ, T title %%(title)s, T description %%(desc)s%s
                WHERE REV from_repository REPO, PROJ source_repository REPO, REV changeset %%(cs)s%s'''
