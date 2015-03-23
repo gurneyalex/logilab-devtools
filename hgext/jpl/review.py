@@ -17,10 +17,10 @@ def ask_review(client, revs):
     return client.rqlio(queries)
 
 def show_review(client, revs, committer=None):
-    query = '''Any PN, P, N, GROUP_CONCAT(L) GROUPBY PN,P,N WHERE
+    query = '''Any PN, P, C, N, GROUP_CONCAT(L) GROUPBY PN,P,C,N WHERE
                 P patch_revision R, R changeset IN ({revs}), P in_state S,
                 S name N, P patch_name PN, P patch_reviewer U?,
-                U login L'''
+                U login L, R changeset C'''
     fmt = {'revs': ','.join('%r' % rev for rev in revs)}
     if committer:
         query += ', P patch_committer PC, PC login "{committer}"'
