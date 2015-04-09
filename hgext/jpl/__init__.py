@@ -20,7 +20,7 @@ configuration file::
 or, according cwo is the id of the endpoint in your cwclientlib_ config file::
 
   [jpl]
-  endpoint = cwo 
+  endpoint = cwo
 
 You may need `python-ndg-httpsclient`_ and `python-openssl`_ if
 the forge application is using a SNI_ ssl configuration (ie. if you
@@ -49,6 +49,7 @@ demandimport.disable()
 from .jplproxy import build_proxy
 from .tasks import print_tasks
 from .review import ask_review, show_review, sudo_make_me_a_ticket, assign
+from .apycot import create_test_execution
 if enabled:
     demandimport.enable()
 
@@ -355,3 +356,41 @@ def make_ticket(ui, repo, *changesets, **opts):
         for rev in revs:
             ticket = sudo_make_me_a_ticket(client, repo, rev, opts.get('done_in', ''))
             ui.write("{0} {1}\n".format(rev, ticket[0][0]))
+
+
+@command('^start-test', [
+    ('r', 'rev', [], _('start apycot tests on the given revision(s)'), _('REV')),
+    ('l', 'label', 'quick python tests', _("the TestConfig's label to execute"), _('LABEL')),
+    ('o', 'option', [], _("options to add to the TestExecution"), _('OPTIONS')),
+    ]  + cnxopts,
+    _('[OPTION]... [-r] REV...'))
+def runapycot(ui, repo, *changesets, **opts):
+    """start Apycot tests for the given revisions.
+
+    By default, the revision used is the parent of the working
+    directory: use -r/--rev to specify a different revision.
+
+    """
+    changesets += tuple(opts.get('rev', []))
+    if not changesets:
+        changesets = ('.')
+    revs = scmutil.revrange(repo, changesets)
+    if not revs:
+        raise util.Abort(_('no working directory: please specify a revision'))
+    ctxhexs = [node.short(repo.lookup(rev)) for rev in revs]
+    label = opts.get('label', 'quick python tests')
+    options = dict(o.split('=') for o in opts.get('option', []))
+
+    with build_proxy(ui, opts) as client:
+        results = create_test_execution(client, ctxhexs, label, **options)
+        rset = [x[0][0] if x else None for x in results]
+        if all(rset):
+            ui.write('OK ({})\n'.format(', '.join(str(eid) for eid in rset)))
+        else:
+            if any(rset):
+                ui.write('PARTIAL ({})\n'.format(', '.join(str(eid)
+                                                  for eid in rset if eid)))
+            else:
+                ui.write('FAILED\n')
+            failed = (cset for cset, result in zip(ctxhexs, rset) if not result)
+            ui.write('  could not create tests for {}\n'.format(', '.join(failed)))
