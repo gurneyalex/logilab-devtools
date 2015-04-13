@@ -257,9 +257,11 @@ def askreview(ui, repo, *changesets, **opts):
         ask_review(client, ctxhexs)
         ui.write('OK\n')
 
+
 @command('^show-review', [
     ('r', 'rev', [], _('show review status for the given revision(s)'), _('REV')),
     ('c', 'committer', '', _('login of the committer in JPL forge'), _('LOGIN')),
+    ('T', 'test-results', False, _('show test results for each changeset'), ),
     ]  + cnxopts,
     _('[OPTION]... [-r] REV...'))
 def showreview(ui, repo, *changesets, **opts):
@@ -275,15 +277,24 @@ def showreview(ui, repo, *changesets, **opts):
     revs = scmutil.revrange(repo, changesets)
     if not revs:
         raise util.Abort(_('no working directory: please specify a revision'))
-    ctxhexs = (node.short(repo.lookup(rev)) for rev in revs)
+    ctxhexs = [node.short(repo.lookup(rev)) for rev in revs]
 
     committer = opts.get('committer', None)
 
     with build_proxy(ui, opts) as client:
         rev = show_review(client, ctxhexs, committer)
-        _format_review_result(ui, rev)
+        if opts.get('test_results'):
+            rql = ('Any TCN, ST WHERE TE status ST, TE using_revision REV, '
+                   'REV changeset %(cset)s, '
+                   'TE using_config TC, TC name TCN')
+            queries = [(rql, dict(cset=cset)) for cset in ctxhexs]
+            test_results = dict(zip(ctxhexs, client.rqlio(queries)))
+        else:
+            test_results = None
+        _format_review_result(ui, rev, test_results)
 
-def _format_review_result(ui, revs):
+        
+def _format_review_result(ui, revs, test_results=None):
     """Display a formatted patch review list"""
     for pname, eid, rid, status, victims in  rev:
         uri = client.buildurl(str(eid))
@@ -292,6 +303,10 @@ def _format_review_result(ui, revs):
         ui.write("\t[{0}]".format(status), label='jpl.status.{0}'.format(status))
         ui.write("\t{0}\n".format(victims), label='jpl.reviewers')
         ui.write(pname.encode('utf-8') + '\n\n')
+        if test_results:
+            for tcn, st in test_results.get(rid, []):
+                ui.write('#{} {}: {}\n'.format(rid, tcn, st))
+
 
 @command('^backlog', [
     ('c', 'committer', '', _('login of the committer in JPL forge'), _('LOGIN')),
@@ -337,6 +352,7 @@ def patch_assign(ui, repo, *changesets, **opts):
         assign(client, ctxhexs, committer)
         ui.write('OK\n')
 
+
 @command('^make-ticket', [
     ('r', 'rev', [], _('create a ticket for the given revision'), _('REV')),
     ('d', 'done-in', '', _('new ticket should be marked as done in this version'), _('VERSION')),
@@ -355,7 +371,7 @@ def make_ticket(ui, repo, *changesets, **opts):
     with build_proxy(ui, opts) as client:
         for rev in revs:
             ticket = sudo_make_me_a_ticket(client, repo, rev, opts.get('done_in', ''))
-            ui.write("{0} {1}\n".format(rev, ticket[0][0]))
+            ui.write("{0} {1}\n".format(rev, ticket[0][0] if ticket[0] else 'FAILED'))
 
 
 @command('^start-test', [
