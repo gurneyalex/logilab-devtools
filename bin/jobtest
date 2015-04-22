@@ -93,7 +93,7 @@ if __name__ == '__main__':
     for dirpath, dirnames, filenames in os.walk('.'):
         for f in filenames[::-1]: # test_ is slower than unittest_
             if TF_RE.match(f):
-                if f.endswith('test_views.py'):
+                if f.endswith(('test_views.py', 'test_migractions.py', 'test_repository.py')):
                     slow_files.append(os.path.join(dirpath, f))
                 else:
                     # test_views is so slow that it needs to run early to ever complete
