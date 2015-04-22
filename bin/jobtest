@@ -5,6 +5,7 @@ import re
 import random
 from Queue import Queue, Empty
 
+import multiprocessing as mp
 from subprocess import Popen
 from threading import Thread
 
@@ -12,7 +13,7 @@ import sys
 
 QUIET = '-q' in sys.argv
 VERBOSE = '-v' in sys.argv
-PROCESS = 8
+PROCESS = mp.cpu_count()
 
 #TF_RE = re.compile('^(unit)?test_.*\.py$')
 TF_RE = re.compile('^(unit)?test_.*\.py$')
