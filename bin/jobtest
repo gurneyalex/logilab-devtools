@@ -91,12 +91,12 @@ if __name__ == '__main__':
     all_files = []
     slow_files = []
     for dirpath, dirnames, filenames in os.walk('.'):
-        for f in filenames[::-1]: # test_ is slower that unittest_
+        for f in filenames[::-1]: # test_ is slower than unittest_
             if TF_RE.match(f):
                 if f.endswith('test_views.py'):
                     slow_files.append(os.path.join(dirpath, f))
                 else:
-                    # test_views is so slow that it need to run early to ever complete
+                    # test_views is so slow that it needs to run early to ever complete
                     all_files.append(os.path.join(dirpath, f))
     random.shuffle(all_files)
     all_files = slow_files + all_files
