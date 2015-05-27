@@ -18,8 +18,8 @@ def ask_review(client, revs):
 
 def show_review(client, revs):
     return client.rqlio([(
-        '''Any PN, URI, N, GROUP_CONCAT(L) GROUPBY PN,URI,N WHERE P patch_revision R, R changeset IN ({revs}),
-             P in_state S, S name N, P cwuri URI, P patch_name PN, P patch_reviewer U?, U login L
+        '''Any PN, P, N, GROUP_CONCAT(L) GROUPBY PN,P,N WHERE P patch_revision R, R changeset IN ({revs}),
+             P in_state S, S name N, P patch_name PN, P patch_reviewer U?, U login L
         '''.format(revs=','.join('%r' % rev for rev in revs)), {}),])[0]
 
 def assign(client, revs, committer):
