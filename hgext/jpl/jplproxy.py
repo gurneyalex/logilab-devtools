@@ -11,7 +11,7 @@ from requests import ConnectionError, HTTPError
 
 import itertools
 
-from cwclientlib import cwproxy
+from cwclientlib import cwproxy, cwproxy_for
 
 def wraprql(meth):
     def wrapper(*args, **kwargs):
@@ -26,10 +26,6 @@ def wraprql(meth):
         except HTTPError as exc:
             return '\n'.join(("%s" % exc, reply.json()['reason']))
     return wrapper
-
-class MyProxy(cwproxy.CWProxy):
-    rql = wraprql(cwproxy.CWProxy.rql)
-    rqlio = wraprql(cwproxy.CWProxy.rqlio)
 
 class RequestError(IOError):
     """Exception raised when the request fails."""
@@ -55,21 +51,31 @@ def build_proxy(ui, opts):
         mech = getlglbopt('auth-mech', ui, opts)
         auth = None
 
-        if mech and mech not in ('signedrequest', 'kerberos'):
-            raise util.Abort(_('unknown authentication mechanisme specified with --auth-mech'))
+        if base_url.startswith('http'):
+            # legacy, all config in hgrc
+            if mech and mech not in ('signedrequest', 'kerberos'):
+                raise util.Abort(_('unknown authentication mechanisme specified with --auth-mech'))
 
-        if mech == 'signedrequest':
-            token = getlglbopt('auth-token', ui, opts)
-            secret = getlglbopt('auth-secret', ui, opts)
-            if not token or not secret:
-                raise util.Abort(_('you must provide your authentication token and secret'))
+            if mech == 'signedrequest':
+                token = getlglbopt('auth-token', ui, opts)
+                secret = getlglbopt('auth-secret', ui, opts)
+                if not token or not secret:
+                    raise util.Abort(_('you must provide your authentication token and secret'))
 
-            auth = cwproxy.SignedRequestAuth(token, secret)
-        if mech == 'kerberos':
-            from requests_kerberos import HTTPKerberosAuth, OPTIONAL
-            auth = HTTPKerberosAuth(mutual_authentication=OPTIONAL)
+                auth = cwproxy.SignedRequestAuth(token, secret)
+            if mech == 'kerberos':
+                from requests_kerberos import HTTPKerberosAuth, OPTIONAL
+                auth = HTTPKerberosAuth(mutual_authentication=OPTIONAL)
 
-        yield MyProxy(base_url, auth=auth, verify=verify)
+            proxy = cwproxy.CWProxy(base_url, auth=auth, verify=verify)
+        else:
+            # use cwclientlib config file
+            proxy = cwproxy_for(base_url)
+
+        proxy.rql = wraprql(proxy.rql)
+        proxy.rqlio = wraprql(proxy.rqlio)
+        yield proxy
+
     except ConnectionError as exc:
         if ui.tracebackflag:
             raise
