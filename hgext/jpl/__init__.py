@@ -293,7 +293,7 @@ def showreview(ui, repo, *changesets, **opts):
             test_results = None
         _format_review_result(ui, rev, test_results)
 
-        
+
 def _format_review_result(ui, revs, test_results=None):
     """Display a formatted patch review list"""
     for pname, eid, rid, status, victims in  rev:
@@ -356,8 +356,9 @@ def patch_assign(ui, repo, *changesets, **opts):
 @command('^make-ticket', [
     ('r', 'rev', [], _('create a ticket for the given revision'), _('REV')),
     ('d', 'done-in', '', _('new ticket should be marked as done in this version'), _('VERSION')),
+    ('t', 'type', '', _('type of ticket'), _('TYPE')),
     ] + cnxopts,
-    _('[OPTION]... [-d VERSION] [-r] REV'))
+    _('[OPTION]... [-d VERSION] [-t TYPE] [-r] REV'))
 def make_ticket(ui, repo, *changesets, **opts):
     """create new tickets for the specified revisions
     """
@@ -370,7 +371,9 @@ def make_ticket(ui, repo, *changesets, **opts):
 
     with build_proxy(ui, opts) as client:
         for rev in revs:
-            ticket = sudo_make_me_a_ticket(client, repo, rev, opts.get('done_in', ''))
+            ticket = sudo_make_me_a_ticket(client, repo, rev,
+                                           version=opts.get('done_in', ''),
+                                           kind=opts.get('type', 'bug'))
             ui.write("{0} {1}\n".format(rev, ticket[0][0] if ticket[0] else 'FAILED'))
 
 
