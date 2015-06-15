@@ -1,12 +1,13 @@
 exclude .hgignore
 recursive-exclude debian *
 
-include bin/lsprofcalltree
+include __pkginfo__.py
+
 include bin/grmerge
 include bin/gmmerge
 include bin/tagsmerge
 include bin/ingrsh.zsh
-include bin/ingrsh.sh
+include bin/ingrsh
 include bin/nicetests
 include bin/jobtest
 include bin/pygrep
@@ -16,21 +17,5 @@ include hgext/jpl/*.py
 include elisp/*.el
 include elisp/startup
 
-include doc/*.xml
-include doc/*.txt
-include doc/makefile
-recursive-include doc *.rst
-recursive-include templates *.txt *.py
-
-recursive-include test/data *
-
 include README
-include INSTALL
 include COPYING
-include ChangeLog
-include logging.conf
-include doc/*.html
-
-include man/*.1
-recursive-include etc *
-

@@ -1,14 +1,11 @@
 usr/bin/gmmerge
 usr/bin/gmmerge
 usr/bin/jobtest  
-usr/bin/lsprofcalltree  
 usr/bin/tagsmerge
 
-bin/ingrsh.sh usr/bin/
+bin/ingrsh usr/bin/
 bin/ingrsh.zsh usr/bin/
 bin/nicetests usr/bin/
 bin/pygrep usr/bin/
 
-usr/lib/python*/*/logilab/devtools/__init__.py
-usr/lib/python*/*/logilab/devtools/__pkginfo__.py
-usr/lib/python*/*/logilab/devtools/lib
+usr/lib/python2*/*-packages/logilab_grutils.py

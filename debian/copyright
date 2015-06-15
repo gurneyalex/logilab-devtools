@@ -1,33 +1,18 @@
-This package was debianized by Sylvain Thenault <sylvain.thenault@logilab.fr>  Sat, 13 Apr 2002 19:05:23 +0200.
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: logilab-devtools
+Source: https://www.logilab.org/project/logilab-devools
+Upstream-Contact: Logilab S.A. <contact@logilab.fr>
 
-It was downloaded from ftp://ftp.logilab.org/pub/devtools
+Files: *
+Copyright: 2002-2015 Logilab S.A.
+License: GPL-2
 
-Upstream Author: 
-
-  Logilab <contact@logilab.fr>
-
-Copyright:
-
-Copyright (c) 2003-2008 LOGILAB S.A. (Paris, FRANCE).
-http://www.logilab.fr/ -- mailto:contact@logilab.fr
-
-This program is free software; you can redistribute it and/or modify it under
-the terms of the GNU General Public License as published by the Free Software
-Foundation; either version 2 of the License, or (at your option) any later
-version.
-
-This program is distributed in the hope that it will be useful, but WITHOUT
-ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
-FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License along with
-this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
-
-On Debian systems, the complete text of the GNU General Public License
-may be found in '/usr/share/common-licenses/GPL'.
-
-For lsprofcalltree.py:
-
-Copyright  David Allouche, Jp Calderone & Itamar Shtull-Trauring, Johan Dahlin
-
+License: GPL-2
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public
+ License as published by the Free Software Foundation;
+ version 2 of the License.
+ .
+ On Debian systems, the complete text of version 2 of the GNU
+ General Public License can be found in
+ `/usr/share/common-licenses/GPL-2'
