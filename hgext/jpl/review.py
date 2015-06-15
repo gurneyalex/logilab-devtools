@@ -6,7 +6,7 @@ import sys
 enc = sys.stdout.encoding or 'ascii'
 
 from cwclientlib import builders
-from .jplproxy import build_proxy, RequestError
+from .jplproxy import build_proxy
 
 def ask_review(client, revs):
     eids = client.rql(

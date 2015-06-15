@@ -9,9 +9,8 @@ from mercurial import util
 from mercurial.i18n import _
 from requests import ConnectionError, HTTPError
 
-import itertools
-
 from cwclientlib import cwproxy, cwproxy_for
+
 
 def wraprql(meth):
     def wrapper(*args, **kwargs):
@@ -27,55 +26,37 @@ def wraprql(meth):
             return '\n'.join(("%s" % exc, reply.json()['reason']))
     return wrapper
 
-class RequestError(IOError):
-    """Exception raised when the request fails."""
 
-def getlglbopt(name, ui, opts, default=None, isbool=False):
+class JplProxy(cwproxy.CWProxy):
+    rql = wraprql(cwproxy.CWProxy.rql)
+    rqlio = wraprql(cwproxy.CWProxy.rqlio)
+
+    def execute(self, rql, args=None):
+        # reimplemented since rqlio is wrapped
+        result = self.rqlio([(rql, args)])
+        if isinstance(result, list):
+            result = result[0]
+        return result
+
+
+def getcwcliopt(name, ui, opts, default=None, isbool=False):
     value = default
-    if getattr(ui, 'config', None) and ui.config('lglb', name):
-        value = ui.config('lglb', name)
+    if getattr(ui, 'config', None) and ui.config('jpl', name):
+        value = ui.config('jpl', name)
     name = name.replace('-', '_')
-    if opts.get(name):
+    if opts and opts.get(name):
         value = opts[name]
     if isbool and value not in (None, True, False):
         value = value.lower() in ('t','true','1','y','yes')
     return value
 
+
 @contextmanager
-def build_proxy(ui, opts):
+def build_proxy(ui, opts=None):
     """Build a cwproxy"""
-
     try:
-        base_url = getlglbopt('forge-url', ui, opts, default=URL)
-        verify = not getlglbopt('no-verify-ssl', ui, opts, isbool=True)
-        mech = getlglbopt('auth-mech', ui, opts)
-        auth = None
-
-        if base_url.startswith('http'):
-            # legacy, all config in hgrc
-            if mech and mech not in ('signedrequest', 'kerberos'):
-                raise util.Abort(_('unknown authentication mechanisme specified with --auth-mech'))
-
-            if mech == 'signedrequest':
-                token = getlglbopt('auth-token', ui, opts)
-                secret = getlglbopt('auth-secret', ui, opts)
-                if not token or not secret:
-                    raise util.Abort(_('you must provide your authentication token and secret'))
-
-                auth = cwproxy.SignedRequestAuth(token, secret)
-            if mech == 'kerberos':
-                from requests_kerberos import HTTPKerberosAuth, OPTIONAL
-                auth = HTTPKerberosAuth(mutual_authentication=OPTIONAL)
-
-            proxy = cwproxy.CWProxy(base_url, auth=auth, verify=verify)
-        else:
-            # use cwclientlib config file
-            proxy = cwproxy_for(base_url)
-
-        proxy.rql = wraprql(proxy.rql)
-        proxy.rqlio = wraprql(proxy.rqlio)
-        yield proxy
-
+        endpoint = getcwcliopt('endpoint', ui, opts, default=URL)
+        yield cwproxy_for(endpoint, proxycls=JplProxy)
     except ConnectionError as exc:
         if ui.tracebackflag:
             raise
@@ -84,5 +65,3 @@ def build_proxy(ui, opts):
         except (AttributeError, IndexError):
             msg = str(exc)
         ui.warn(_('abort: error: %s\n') % msg)
-
-
