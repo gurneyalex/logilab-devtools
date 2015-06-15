@@ -14,33 +14,25 @@ mercurial changesets.
 The forge url can be permanently defined into one of the mercurial
 configuration file::
 
-  [lglb]
-  forge-url = https://www.cubicweb.org/
-  auth-mech = signedrequest
-  auth-token = my token
-  auth-secret = 0123456789abcdef
+  [jpl]
+  endpoint = https://www.cubicweb.org/
 
-or for kerberos authentication::
+or, according cwo is the id of the endpoint in your cwclientlib_ config file::
 
-  [lglb]
-  forge-url = https://my.intranet.com/
-  auth-mech = kerberos
+  [jpl]
+  endpoint = cwo 
 
-Note that you need `python-requests-kerberos`_ for this later
-configuration to work.
-
-You may also need `python-ndg-httpsclient`_ and `python-openssl`_ if
+You may need `python-ndg-httpsclient`_ and `python-openssl`_ if
 the forge application is using a SNI_ ssl configuration (ie. if you
 get errors like::
 
   abort: error: hostname 'www.logilab.org' doesn't match either of
          'demo.cubicweb.org', 'cubicweb.org'
 
-.. _`python-requests-kerberos`: https://pypi.python.org/pypi/requests-kerberos
 .. _`python-ndg-httpsclient`: https://pypi.python.org/pypi/ndg-httpsclient
 .. _`python-openssl`:https://pypi.python.org/pypi/pyOpenSSL
 .. _SNI: https://en.wikipedia.org/wiki/Server_Name_Indication
-.. _`cwclientlib: https://www.cubicweb.org/project/cwclientlib
+.. _cwclientlib: https://www.cubicweb.org/project/cwclientlib
 
 '''
 from cStringIO import StringIO
@@ -54,7 +46,7 @@ try:
 except AttributeError:
     enabled = demandimport._import is __import__
 demandimport.disable()
-from .jplproxy import build_proxy, RequestError
+from .jplproxy import build_proxy
 from .tasks import print_tasks
 from .review import ask_review, show_review, sudo_make_me_a_ticket, assign
 if enabled:
@@ -104,8 +96,8 @@ WHERE P patch_revision TIP,
                  P patch_revision RE),
       T concerns PO,
       T done_in V,
-      V num "%(version)s",
-      P  patch_ticket T
+      V num %(version)s,
+      P patch_ticket T
 """
 
 TASKSRQL = """
@@ -128,10 +120,8 @@ def reviewed(repo, subset, x):
     return changesets that are linked to reviewed patch in the jpl forge
     """
     mercurial.revset.getargs(x, 0, 0, _("reviewed takes no arguments"))
-    base_url = repo.ui.config('lglb', 'forge-url')
-    url = '%s/view?vid=jsonexport&rql=rql:%s' % (base_url, quote(RQL))
-    raw_data = urlopen(url)
-    data = json.load(raw_data)
+    with build_proxy(repo.ui) as client:
+        data = client.rql(RQL)
     all = set(short for po, short, p in data)
     return [r for r in subset if str(repo[r]) in all]
 
@@ -140,10 +130,9 @@ def inversion(repo, subset, x):
     return changesets that are linked to patches linked to tickets of given version+project
     """
     version = mercurial.revset.getargs(x, 1, 1, _("inversion takes one argument"))[0][1]
-    base_url = repo.ui.config('lglb', 'forge-url')
-    url = '%s/view?vid=jsonexport&rql=rql:%s' % (base_url, quote(IVRQL % {'version': version}))
-    raw_data = urlopen(url)
-    data = json.load(raw_data)
+    with build_proxy(repo.ui) as client:
+        args = {'version': version}
+        data = client.execute(IVRQL, args)
     all = set(short for po, short, p in data)
     return [r for r in subset if str(repo[r]) in all]
 
@@ -154,7 +143,6 @@ def tasks_predicate(repo, subset, x=None):
     The optional state arguments are task states to filter
     (default to 'todo').
     """
-    base_url = repo.ui.config('lglb', 'forge-url')
     states = None
     if x is not None:
         states = [val for typ, val in mercurial.revset.getlist(x)]
@@ -165,9 +153,8 @@ def tasks_predicate(repo, subset, x=None):
     else:
         states = 'IN ({})'.format(','.join('"{}"'.format(state) for state in states))
     rql = TASKSRQL.format(states=states)
-    url = '%s/view?vid=jsonexport&rql=rql:%s' % (base_url, quote(rql))
-    raw_data = urlopen(url)
-    data = json.load(raw_data)
+    with build_proxy(repo.ui) as client:
+        data = client.rql(rql)
     all = set(short[0] for short in data)
     return [r for r in subset if str(repo[r]) in all]
 
@@ -177,10 +164,9 @@ def showtasks(**args):
     with build_proxy(output, args) as client:
         try:
             print_tasks(client, output, iter([node.short(args['ctx'].node())]), {})
-        except RequestError:
+        except Exception:
             return ''
     return mercurial.templatekw.showlist('task', list(output), **args)
-    #return str(output).strip()
 
 class _MockOutput(object):
     def __init__(self):
@@ -194,18 +180,14 @@ class _MockOutput(object):
             yield io.getvalue()
 
 def extsetup(ui):
-    if ui.config('lglb', 'forge-url'):
+    if ui.config('jpl', 'endpoint'):
         mercurial.revset.symbols['reviewed'] = reviewed
         mercurial.revset.symbols['tasks'] = tasks_predicate
         mercurial.revset.symbols['inversion'] = inversion
         mercurial.templatekw.keywords['tasks'] = showtasks
 
 cnxopts  = [
-    ('U', 'forge-url', '', _('base url of the forge (jpl) server'), _('URL')),
-    ('S', 'no-verify-ssl', None, _('do NOT verify server SSL certificate')),
-    ('Y', 'auth-mech', '', _('authentication mechanism used to connect to the forge'), _('MECH')),
-    ('t', 'auth-token', '', _('authentication token (when using signed request)'), _('TOKEN')),
-    ('s', 'auth-secret', '', _('authentication secret (when using signed request)'), ('SECRET')),
+    ('U', 'endpoint', '', _('endpoint (ID or URL) of the configured cwclientlib forge (jpl) server'), _('ENDPOINT')),
     ]
 
 @command('^tasks', [
@@ -219,15 +201,17 @@ def tasks(ui, repo, *changesets, **opts):
     By default, the revision used is the parent of the working
     directory: use -r/--rev to specify a different revision.
 
-    By default, the forge url used is https://www.cubicweb.org/: use
-    -U/--forge-url to specify a different url. The forge url can be
-    permanently defined into one of the mercurial configuration file::
+    By default, the forge url used is https://www.cubicweb.org/. Use
+    -U/--endpoint to specify a different cwclientlib endpoint. The
+    endpoint id of the forge can be permanently defined into one of
+    the mercurial configuration file::
 
-    [lglb]
-    forge-url = https://www.cubicweb.org/
+    [jpl]
+    endpoint = https://www.cubicweb.org/
 
     By default, done tasks are not displayed: use -a/--all to not filter
     tasks and display all.
+
     """
     changesets += tuple(opts.get('rev', []))
     if not changesets:
@@ -245,7 +229,7 @@ def tasks(ui, repo, *changesets, **opts):
         with build_proxy(ui, opts) as client:
             try:
                 print_tasks(client, ui, ctxhexs, showall=showall)
-            except RequestError, e:
+            except Exception as e:
                 ui.write('no patch or no tasks for %s\n' % node.short(repo.lookup(rev)))
 
 

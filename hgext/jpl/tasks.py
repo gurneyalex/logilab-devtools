@@ -5,7 +5,7 @@ import itertools
 import sys
 enc = sys.stdout.encoding or 'ascii'
 
-from .jplproxy import build_proxy, RequestError
+from .jplproxy import build_proxy
 
 INDENT = '  '
 
@@ -56,8 +56,8 @@ def print_comment(ui, comment, level=1):
         print_comment(ui, c, level=level + 1)
 
 
-def print_task(ui, reveid, teid, ttitle, tstate, tdesc, baseurl):
-    msg = u'{indent}[{state}] {title} ({baseurl}/{eid})\n'.format(indent=INDENT, baseurl=baseurl, eid=teid,
+def print_task(ui, reveid, ttitle, tstate, tdesc, url):
+    msg = u'{indent}[{state}] {title} ({url})\n'.format(indent=INDENT, url=url,
                                                          state=tstate.upper(), title=ttitle)
     ui.write(msg.encode(enc, 'replace'), label='jpl.tasks.task.{state}'.format(state=tstate))
     if tdesc:
@@ -82,18 +82,18 @@ def print_tasks(client, ui, revs, showall=False):
 
     patchesdata = client.rql(rql.format(revs=revs, taskstate=taskstate), vid='jsonexport')
     if not patchesdata:
-        raise RequestError("no tasks found for revisions: %r" % ','.join(revs))
+        raise ValueError("no tasks found for revisions: %r" % ','.join(revs))
 
     patchesdata = itertools.groupby(patchesdata, lambda x:x[:3])
     for (peid, pname, pstate), patchdata in patchesdata:
-        msg = '{name} {url}/{eid:d} ({state})\n\n'.format(url=client.base_url, eid=peid, state=pstate, name=pname)
+        msg = '{name} {url} ({state})\n\n'.format(url=client.build_url(str(peid)), state=pstate, name=pname)
         ui.write(msg, label='jpl.tasks.patch')
         teids = set()
         for peid, pname, pstate, reveid, teid, ttitle, tdesc, tstate in patchdata:
             if teid is None or teid in teids:
                 continue
             teids.add(teid)
-            print_task(ui, reveid, teid, ttitle, tstate, tdesc, client.base_url)
+            print_task(ui, reveid, ttitle, tstate, tdesc, client.build_url(str(teid)))
 
     # tasks = client.rql(rql.format(**patch), vid='ejsonexport')
     # comments = []
@@ -124,8 +124,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(epilog=epilog)
     parser.add_argument('revs', default=[], metavar='REVS', nargs='+',
                         help='tasks for the given revision (short hex)', ),
-    parser.add_argument('-U', '--forge-url', default=URL, metavar='URL',
-                        help='base url of the forge (jpl) server [%s]' % URL)
+    parser.add_argument('-U', '--endpoint', default=URL, metavar='URL',
+                        help='cwclientlib endpoint ID of the forge (jpl) server [%s]' % URL)
     parser.add_argument('-c', '--color', default='auto', metavar='WHEN',
                         choices=('auto', 'never', 'always'),
                         help='display data with color [auto]')
