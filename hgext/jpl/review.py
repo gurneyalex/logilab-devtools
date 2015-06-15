@@ -63,10 +63,20 @@ def sudo_make_me_a_ticket(client, repo, rev, version=None, kind=None):
     desc = repo[rev].description()
     if not desc:
         raise Exception('changeset has no description')
+    # Use a public revision to identify the repository instead of the
+    # given revision, otherwise we cannot create a ticket if the given
+    # revision is not yet know by the forge.
+    # Using the last public revision is not bullet proof, but should
+    # cover most cases.
+    publicrev = repo.revs('last(public() and branch(default))')
+    if not publicrev:
+        publicrev = repo.revs('last(public())')
+    publicrev = publicrev.last()
+
     args = {
         'title': desc.splitlines()[0],
         'desc': desc,
-        'cs': str(repo[rev]),
+        'cs': str(repo[publicrev]),
         'version': version,
         'type': kind or 'bug',
     }
