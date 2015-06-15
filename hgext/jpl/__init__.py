@@ -49,7 +49,7 @@ demandimport.disable()
 from .jplproxy import build_proxy
 from .tasks import print_tasks
 from .review import ask_review, show_review, sudo_make_me_a_ticket, assign
-from .apycot import create_test_execution
+from .apycot import create_test_execution, list_tc
 if enabled:
     demandimport.enable()
 
@@ -413,3 +413,26 @@ def runapycot(ui, repo, *changesets, **opts):
                 ui.write('FAILED\n')
             failed = (cset for cset, result in zip(ctxhexs, rset) if not result)
             ui.write('  could not create tests for {}\n'.format(', '.join(failed)))
+
+@command('^list-tc', [
+    ('r', 'rev', [], _('list available TestConfig for the given revision(s)'), _('REV')),
+    ]  + cnxopts,
+    _('[OPTION]... [-r] REV...'))
+def listtc(ui, repo, *changesets, **opts):
+    """list TestConfig for the given revisions.
+
+    By default, the revision used is the parent of the working
+    directory: use -r/--rev to specify a different revision.
+
+    """
+    changesets += tuple(opts.get('rev', []))
+    if not changesets:
+        changesets = ('.')
+    revs = scmutil.revrange(repo, changesets)
+    if not revs:
+        raise util.Abort(_('no working directory: please specify a revision'))
+    ctxhexs = [node.short(repo.lookup(rev)) for rev in revs]
+
+    with build_proxy(ui, opts) as client:
+        results = list_tc(client, ctxhexs)
+        ui.write('{}\n'.format('\n'.join('{0} ({1})'.format(str(tc), str(tn)) for (tc, tn) in results)))
