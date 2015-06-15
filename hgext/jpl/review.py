@@ -54,8 +54,8 @@ def assign(client, revs, committer):
     return client.rqlio([(query, {})])[0]
 
 
-def sudo_make_me_a_ticket(client, repo, rev, version):
-    query = '''INSERT Ticket T: T concerns PROJ, T title %%(title)s, T description %%(desc)s%s
+def sudo_make_me_a_ticket(client, repo, rev, version=None, kind=None):
+    query = '''INSERT Ticket T: T concerns PROJ, T title %%(title)s, T type %%(type)s, T description %%(desc)s%s
                WHERE REV from_repository REPO, PROJ source_repository REPO, REV changeset %%(cs)s%s'''
     if version:
         query %= (', T done_in V', ', V num %(version)s, V version_of PROJ')
@@ -67,7 +67,8 @@ def sudo_make_me_a_ticket(client, repo, rev, version):
     args = {
         'title': desc.splitlines()[0],
         'desc': desc,
-        'cs': str(repo[0]),
+        'cs': str(repo[rev]),
         'version': version,
+        'type': kind or 'bug',
     }
     return client.rqlio([(query, args)])
