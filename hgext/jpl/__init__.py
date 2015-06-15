@@ -67,6 +67,10 @@ colortable = {'jpl.tasks.patch': 'cyan',
               'jpl.status.in-progress': 'yellow',
               'jpl.status.reviewed': 'green',
               'jpl.status.applied': 'cyan',
+              'jpl.testresult.error': 'cyan',
+              'jpl.testresult.failure': 'red',
+              'jpl.testresult.partial': 'yellow',
+              'jpl.testresult.success': 'green',
               }
 
 RQL = """
@@ -284,28 +288,34 @@ def showreview(ui, repo, *changesets, **opts):
     with build_proxy(ui, opts) as client:
         rev = show_review(client, ctxhexs, committer)
         if opts.get('test_results'):
-            rql = ('Any TCN, ST WHERE TE status ST, TE using_revision REV, '
+            rql = ('Any PEN, TCN, ST WHERE TE status ST, TE using_revision REV, '
                    'REV changeset %(cset)s, '
+                   'TE using_environment PE, PE name PEN, '
                    'TE using_config TC, TC name TCN')
             queries = [(rql, dict(cset=cset)) for cset in ctxhexs]
             test_results = dict(zip(ctxhexs, client.rqlio(queries)))
         else:
             test_results = None
-        _format_review_result(ui, rev, test_results)
+        _format_review_result(ui, repo, client, rev, test_results)
 
 
-def _format_review_result(ui, revs, test_results=None):
+def _format_review_result(ui, repo, client, revs, test_results=None):
     """Display a formatted patch review list"""
-    for pname, eid, rid, status, victims in  rev:
-        uri = client.buildurl(str(eid))
+    for pname, eid, rids, status, victims in  revs:
+        uri = client.build_url(str(eid))
         ui.write("{0}".format(uri), label='jpl.cwuri')
-        ui.write(" {0}".format(rid))
+        if ',' in rids:
+            revs = repo.revs('max({})'.format(rids.replace(',', ' or ')))
+            rids = node.short(repo.lookup(revs.first()))
+        ui.write(" {0}".format(rids))
         ui.write("\t[{0}]".format(status), label='jpl.status.{0}'.format(status))
         ui.write("\t{0}\n".format(victims), label='jpl.reviewers')
         ui.write(pname.encode('utf-8') + '\n\n')
         if test_results:
-            for tcn, st in test_results.get(rid, []):
-                ui.write('#{} {}: {}\n'.format(rid, tcn, st))
+            for rid in rids.split(','):
+                for pen, tcn, st in test_results.get(rid.strip(), []):
+                    ui.write('#{} {}/{}: '.format(rid, pen, tcn))
+                    ui.write('{}\n'.format(st), label='jpl.testresult.{0}'.format(st))
 
 
 @command('^backlog', [
@@ -323,7 +333,7 @@ def backlog(ui, repo, *changesets, **opts):
 
     with build_proxy(ui, opts) as client:
         rev = show_review(client, ctxhexs, committer)
-        _format_review_result(ui, rev)
+        _format_review_result(ui, repo, client, rev)
 
 @command('^assign', [
     ('r', 'rev', [], _('revision(s) indentifying patch(es) to be assigned to committer'), _('REV')),
