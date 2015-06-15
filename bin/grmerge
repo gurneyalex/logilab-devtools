@@ -45,7 +45,7 @@ def grmerge(local, base, other):
             oth = grotherd[loc.name]
             if oth.csid != loc.csid:
                 srepo = hg.repository(ui.ui(), loc.root)
-                anc = srepo.revs('ancestor(%ls)', (oth.csid, loc.csid))[0]
+                anc = srepo.revs('ancestor(%ls)', (oth.csid, loc.csid)).last()
                 anc = srepo[anc]
                 known = [srepo[oth.csid], srepo[loc.csid]]
                 if anc in known:
