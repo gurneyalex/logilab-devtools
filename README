@@ -1,7 +1,7 @@
 Logilab's development tools
 ===========================
 
-Set of tools which aims to help the developpement process, including :
+Set of tools which aims to help the development process, including :
 
   * tools to check and build source and/or Debian packages
 
@@ -53,16 +53,82 @@ The extension should be enabled from a Mercurial_ configuration file::
   # or, if it has been installed via the debian package:
   jpl =
 
-  [lglb]
-  forge-url = http://www.cubicweb.org
+  [jpl]
+  endpoint = http://www.cubicweb.org
+
+The ``endpoint`` refers to a configuration entry in your cwclientlib_
+config setup.  See cwclientlib_ documentation for more informations.
 
 .. note::
 
-  You can specify a default ``lglb/forge`` value in your main
+  You can specify a default ``jpl/endpoint`` value in your main
   Mercurial configuration file (``~/.hgrc`` for Linux systems).  Then
   the local configuration file (``path/to/repository/.hg/hgrc``) can
   override this setting.
 
+
+.. warning:: This version of logilab-devtools **do not** read
+  authentication credentials from the mercurial config files any more;
+  it fully relies on cwclientlib_ for access and authentication
+  towards the cubicweb instance.
+
+  Any mercurial configuration like::
+
+    [lgl]
+    forge-url = <url>
+    auth-xxx = xxx
+    
+  should be replaced by::
+
+    [jpl]
+    endpoint = <url> # or the endpoint ID
+
+  plus a configuration entry in your ``~/.config/cwclientlibrc`` file in which
+  auth credentials are set. See cwclientlib_ documentation.
+
+
+Commands
+~~~~~~~~
+
+:ask-review:
+  Allows to ask review for a Patch produced by a changeset, eg.::
+
+    $ hg ask-review # default to working directory's parent revision
+    $ hg ask-review -r "draft() and ::."
+
+:assign:
+  Assign patches corresponding to specified revisions to a committer.
+  
+:backlog:
+  Show the backlog (draft changesets) of specified committer.
+  
+:list-tc:
+  List TestConfig available for project linked to the repository.
+  
+:make-ticket:
+  Create new tickets for the specified revisions.
+  
+:show-review:
+  Show review status for patches corresponding to specified revisions, eg.::
+
+    $ hg show-review  -r 82071f767cb8 -T
+    https://www.cubicweb.org/5457568 82071f767cb8   [applied]       abegey
+    [schemas] cwuri should be read-only
+    
+    #82071f767cb8 nologin env/quick: partial
+    #82071f767cb8 cubicweb-newsaggregator env/quick: failure
+    #82071f767cb8 ner test env/quick: partial
+    #82071f767cb8 person env/quick: success
+ 
+:start-test:
+  Start Apycot tests for the given revisions, eg.::
+
+    $ hg start-test -r . -l "buildexp cwo" -o publish_host=publish -o upload_host=upload \
+    -o debian.repository=apycot -o lgp_sign=yes -o lgp_suffix=yes
+
+:tasks:
+  Displays tasks requested by reviewers on a patch on a forge.
+  
 
 Revset functions
 ~~~~~~~~~~~~~~~~
@@ -70,25 +136,31 @@ Revset functions
 These predicates retrieve information from the project's forge
 (cubicweb-jpl instance) and are exposed as revset functions.
 
-"tasks"
+:tasks:
   Changesets linked to tasks to be done.
 
-"reviewed"
+:reviewed:
   Changesets that are linked to reviewed patches in the forge
 
-"inversion"
+:inversion:
   Changesets that are linked to patches linked to tickets of given version+project
 
 Examples::
 
   $ hg log -r "reviewed()"
   $ hg log -r "inversion(3.18.0)"
+  $ # display tasks on patches that are meant to be in next 3.20.8 version:
+  $ hg tasks -r "tasks() and inversion(3.20.8)"
+  $ # display patches ready for integration in 3.20.8:
+  $ hg show-review -r "reviewed() and inversion(3.20.8)"
+  $ # are there any pending commit on my branch that is not at his place?
+  $ hg log -r "draft() and ::. keyword(closes) and not inversion(3.20.8)"
 
 
 Templates
 ~~~~~~~~~
 
-"tasks"
+:tasks:
   List of Strings. The text of the tasks and comments of a patch.
 
   Examples:
@@ -106,18 +178,9 @@ Templates
       --template='{desc|firstline}\n{tasks % "{task|firstline}\n"}'
 
 
-Commands
-~~~~~~~~
 
-tasks
-  Displays tasks requested by reviewers on a patch on a forge.
-
-ask-review
-  Allows to ask review for a Patch produced by a changeset, eg.::
-
-    $ hg ask-review # default to working directory's parent revision
-    $ hg ask-review -r "draft() and ::."
 
 .. _CubicWeb: http://www.cubicweb.org
 .. _Mercurial: http://mercurial.selenic.com
-.. _GestRepo: https://bitbucket.org/selinc/guestrepo
+.. _GuestRepo: https://bitbucket.org/selinc/guestrepo
+.. _cwclientlib: https://www.cubicweb.org/projhect/cwclientlib
