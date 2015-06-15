@@ -14,38 +14,7 @@ gmmerge.executable = path/to/gmmerge
 gmmerge.args = $local $base $other -o $output
 
 """
-
-from itertools import chain
-
-from mercurial import hg, ui
-
-from logilab.devtools.grutils import load_guestrepo, to_mapping_entry, copy_into_root
-
-
-def gmmerge(local, other):
-    repo = hg.repository(ui.ui(), '.')
-    guestrepo = load_guestrepo()
-
-    print local, open(local).read()
-    print other, open(other).read()
-
-    gmlocald = guestrepo.readconfig(copy_into_root(repo, local), repo[None])['']
-    gmotherd = guestrepo.readconfig(copy_into_root(repo, other), repo[None])['']
-
-    conflicts = dict((key, (val, grotherd[key]))
-                     for (key, val) in gmlocald.iteritems()
-                     if (key in gmotherd and gmotherd[key] != val))
-
-    outstr = ["%s = %s" % (key, val)
-              for (key, val) in chain(gmlocald.iteritems(), gmotherd.iteritems())
-              if key not in conflicts]
-
-    for key, localval, otherval in conflicts:
-        outstr.append('<<<<<<< local')
-        pass
-
-    return bool(conflicts), '\n'.join(outstr) + '\n'
-
+from logilab_grutils import gmmerge
 
 if __name__ == '__main__':
     import sys

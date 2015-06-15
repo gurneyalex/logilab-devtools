@@ -6,9 +6,12 @@ Uploaders: Adrien Di Mascio <adrien.dimascio@logilab.fr>,
            Sylvain Thenault <sylvain.thenault@logilab.fr>,
            David Douard <david.douard@logilab.fr>,
            Julien Cristau <jcristau@debian.org>
-Standards-Version: 3.9.3
-Build-Depends: debhelper (>= 9), python-all (>= 2.6.5)
-Build-Depends-Indep: python-support
+Standards-Version: 3.9.6
+Build-Depends:
+ debhelper (>= 9),
+ python-all (>= 2.6.5),
+ python-setuptools,
+ dh-python,
 X-Python-Version: >= 2.6
 Homepage: http://www.logilab.org/project/logilab-devtools
 Vcs-hg: http://hg.logilab.org/logilab/devtools
@@ -16,15 +19,16 @@ Vcs-Browser: http://hg.logilab.org/logilab/devtools
 
 Package: python-logilab-devtools
 Architecture: all
+Suggests:
+  zsh,
 Recommends:
   mercurial (>= 2.8.0),
 Depends:
   ${misc:Depends},
   ${python:Depends},
-  python-logilab-common,
   python-cwclientlib,
 Description: set of development tools used at Logilab
- Set of tools which aims to help the developpement process, including:
+ Set of tools which aims to help the development process, including:
   * tools to run unit tests in parallel
   * tools to ease the merge of branches in a guestrepo shell
   * tools to help working with multiple guestrepo shells
@@ -52,5 +56,5 @@ Suggests:
 Description: mercurial extensions to ease interaction with JPL-based forges
  This includes:
   * mercurial command to ask review for a changeset
-  * mercurial command to list review feedback on a chageset
+  * mercurial command to list review feedback on a changeset
   * mercurial revset functions

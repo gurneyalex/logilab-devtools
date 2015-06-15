@@ -1,6 +1,0 @@
-#!/usr/bin/python
-
-import sys
-from logilab.devtools.lsprofcalltree import main
-
-sys.exit(main(sys.argv))

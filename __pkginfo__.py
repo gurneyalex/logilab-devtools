@@ -27,18 +27,3 @@ author_email = "contact@logilab.fr"
 description = "set of development tools used at Logilab"
 web = "http://www.logilab.org/project/logilab-devtools"
 mailinglist = "mailto://python-projects@lists.logilab.org"
-
-subpackage_of = 'logilab'
-
-scripts = [
-    'bin/lsprofcalltree',
-    'bin/grmerge',
-    'bin/gmmerge',
-    'bin/tagsmerge',
-    'bin/jobtest',
-    'bin/pygrep',
-    ]
-
-packages = ['hgext.jpl']
-
-install_requires = ['logilab-common']

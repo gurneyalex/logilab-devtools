@@ -1,61 +1,7 @@
 #!/usr/bin/make -f
-# Sample debian/rules that uses debhelper.
-# GNU copyright 1997 to 1999 by Joey Hess.
 #
-# adapted by Logilab for automatic generation by debianize
-# (part of the devtools project, http://www.logilab.org/projects/devtools)
-#
-# Copyright (c) 2003-2014 LOGILAB S.A. (Paris, FRANCE).
-# http://www.logilab.fr/ -- mailto:contact@logilab.fr
-
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
-build: build-stamp
-build-stamp:
-	dh_testdir
-	NO_SETUPTOOLS=1 python setup.py -q build
-	touch build-stamp
-
-clean:
-	dh_testdir
-	dh_testroot
-	rm -f build-stamp configure-stamp
-	rm -rf build
-	find . -name "*.pyc" | xargs rm -f
-	rm -f changelog.gz
-	dh_clean
-
-install: build
-	dh_testdir
-	dh_testroot
-	dh_clean
-	dh_installdirs
-	NO_SETUPTOOLS=1 python setup.py install --no-compile --install-layout=deb  --prefix=debian/tmp/usr/
-	# remove sub-package __init__ file (created in postinst)
-	rm debian/tmp/usr/lib/python*/dist-packages/logilab/__init__.py
-
-# Build architecture-independent files here.
-binary-indep: build install
-	dh_testdir
-	dh_testroot
-	gzip -9 -c ChangeLog > changelog.gz
-	dh_installchangelogs -i
-	dh_installdocs -i README changelog.gz
-	-dh_lintian -i
-	dh_installemacsen -plogilab-elisp
-	dh_install -i --list-missing
-	dh_python2 -i 
-	dh_link -i
-	dh_compress -i -X.py -X.ini -X.xml -Xtest
-	dh_fixperms -i
-	dh_installdeb -i
-	dh_gencontrol -i
-	dh_md5sums -i
-	dh_builddeb -i
-
-binary-arch:
-
-binary: binary-indep
-.PHONY: build clean binary binary-indep binary-arch
-
+%:
+	dh $@ --with python2 --buildsystem=pybuild

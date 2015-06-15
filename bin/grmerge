@@ -14,99 +14,8 @@ grmerge.executable = path/to/grmerge
 grmerge.args = $local $base $other -o $output
 
 """
-from mercurial import config, extensions, hg, ui, util, node, error
 
-from mercurial import hg, ui
-
-from logilab.devtools.grutils import load_guestrepo, to_gr_entry, copy_into_root
-
-
-def grmerge(local, base, other):
-    repo = hg.repository(ui.ui(), '.')
-    guestrepo = load_guestrepo()
-
-    try:
-        grlocal = guestrepo.getguests(repo, copy_into_root(repo, local), local=True)
-        grother = guestrepo.getguests(repo, copy_into_root(repo, other), local=True)
-        grbase = guestrepo.getguests(repo, copy_into_root(repo, base), local=True)
-    except error.RepoLookupError:
-        sys.exit(1)
-
-    grlocald = dict([(guest.name, guest) for guest in grlocal])
-    grotherd = dict([(guest.name, guest) for guest in grother])
-    grbased = dict([(guest.name, guest) for guest in grbase])
-
-    output = {}
-    outnames = []
-    for loc in grlocal:
-        output[loc.name] = [loc]
-        outnames.append(loc.name)
-        if loc.name in grotherd:
-            oth = grotherd[loc.name]
-            if oth.csid != loc.csid:
-                srepo = hg.repository(ui.ui(), loc.root)
-                anc = srepo.revs('ancestor(%ls)', (oth.csid, loc.csid)).last()
-                anc = srepo[anc]
-                known = [srepo[oth.csid], srepo[loc.csid]]
-                if anc in known:
-                    known.remove(anc)
-                    output[loc.name][0].csid = known[0].hex()[:12]
-                else: # unmanagable conflict
-                    output[loc.name].append(oth)
-
-    for loc in grlocal:
-        if loc.name not in grotherd:
-            if loc.name in grbased:
-                if loc.csid != grbased[loc.name].csid:
-                    # conflict: other removed an entry that local modified
-                    output[loc.name] = [loc, None]
-                    if loc.name in outnames:
-                        import pdb
-                        pdb.set_trace()
-                    outnames.append(loc.name)
-                else:
-                    # entry has been removed in other branch, keep it removed
-                    pass
-
-    for oth in grother:
-        if oth.name not in grlocald:
-            if oth.name in grbased:
-                if loc.name not in grbased or oth.csid != grbased[loc.name].csid:
-                    # conflict: local removed an entry that other modified
-                    output[oth.name] = [None, oth]
-                    if oth.name in outnames:
-                        import pdb
-                        pdb.set_trace()
-                    outnames.append(oth.name)
-                else:
-                    # entry has been removed in local branch, keep it removed
-                    pass
-            else:
-                # entry has been added in other
-                output[oth.name] = [oth]
-                if oth.name in outnames:
-                    import pdb
-                    pdb.set_trace()
-                outnames.append(oth.name)
-
-    outstr = []
-    conflict = False
-    #for name, out in output.iteritems():
-    for name in outnames:
-        out = output[name]
-        if len(out) == 1:
-            outstr.append(to_gr_entry(repo.ui, out[0]))
-        else:
-            outstr.append('<<<<<<< local\n')
-            if out[0] is not None:
-                outstr.append(to_gr_entry(repo.ui, out[0]))
-            outstr.append('=======\n')
-            if out[1] is not None:
-                outstr.append(to_gr_entry(repo.ui, out[1]))
-            outstr.append('>>>>>>> other\n')
-            conflict = True
-    return conflict, "".join(outstr)
-
+from logilab_grutils import grmerge
 
 if __name__ == '__main__':
     import sys
@@ -125,5 +34,3 @@ if __name__ == '__main__':
     else:
         open(opts.output, 'w').write(output)
     sys.exit(conflict)
-
-

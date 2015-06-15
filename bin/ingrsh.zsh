@@ -1,3 +1,4 @@
+#!/bin/zsh
 # switch you work environment to a guestrepo shell
 # set PYTHONPATH and CDPATH accordingly
 #
