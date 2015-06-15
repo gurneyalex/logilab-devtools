@@ -26,7 +26,7 @@ Recommends:
 Depends:
   ${misc:Depends},
   ${python:Depends},
-  python-cwclientlib,
+  python-cwclientlib (>= 0.3.0),
 Description: set of development tools used at Logilab
  Set of tools which aims to help the development process, including:
   * tools to run unit tests in parallel
@@ -50,7 +50,7 @@ Depends:
   ${misc:Depends},
   ${python:Depends},
   mercurial (>= 3.0.0),
-  python-cwclientlib,
+  python-cwclientlib (>= 0.3.0),
 Suggests:
   python-requests-kerberos,
 Description: mercurial extensions to ease interaction with JPL-based forges
