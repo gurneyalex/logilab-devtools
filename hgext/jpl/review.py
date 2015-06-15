@@ -20,7 +20,7 @@ def ask_review(client, revs):
 
 def show_review(client, revs, committer=None):
     query = '''\
-Any PN, P, CSET, N, GROUP_CONCAT(L), GROUP_CONCAT(CSET) GROUPBY PN,P,CET,N
+Any PN, P, GROUP_CONCAT(CSET), N, GROUP_CONCAT(L) GROUPBY PN,P,N
 WHERE
   P patch_revision R,
   R changeset IN ({revs}),
@@ -30,14 +30,13 @@ WHERE
   P cwuri URI,
   P patch_name PN,
   P patch_reviewer U?,
-  U login L
-'''
+  U login L'''
     fmt = {'revs': ','.join('%r' % rev for rev in revs)}
     if committer:
         query += ', P patch_committer PC, PC login "{committer}"'
         fmt['committer'] = committer
-    return client.rqlio([(query.format(**fmt), {})])[0]
-
+    query = query.format(**fmt)
+    return client.rql(query)
 
 def assign(client, revs, committer):
     """Assign patches corresponding to specified revisions to specified committer.
