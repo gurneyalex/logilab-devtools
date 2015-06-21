@@ -52,6 +52,20 @@ def assign(client, revs, committer):
             '''.format(revq=revq, login=committer)
     return client.rqlio([(query, {})])[0]
 
+def add_reviewer(client, revs, reviewer):
+    """Add a reviewer to patches corresponding to specified revisions.
+    """
+    revstr = ','.join('%r'%rev for rev in revs)
+    if revstr.count(',') > 0:
+        revq = 'IN ({revs})'.format(revs=revstr)
+    else:
+        revq = revstr
+    query = '''SET P patch_reviewer U WHERE P patch_revision R,
+                                            R changeset {revq},
+                                            U login '{login}'
+            '''.format(revq=revq, login=reviewer)
+    return client.rqlio([(query, {})])[0]
+
 
 def sudo_make_me_a_ticket(client, repo, rev, version=None, kind=None):
     query = '''INSERT Ticket T: T concerns PROJ, T title %%(title)s, T type %%(type)s, T description %%(desc)s%s
