@@ -48,7 +48,7 @@ except AttributeError:
 demandimport.disable()
 from .jplproxy import build_proxy
 from .tasks import print_tasks
-from .review import ask_review, show_review, sudo_make_me_a_ticket, assign
+from .review import ask_review, add_reviewer, show_review, sudo_make_me_a_ticket, assign
 from .apycot import create_test_execution, list_tc
 if enabled:
     demandimport.enable()
@@ -360,6 +360,34 @@ def patch_assign(ui, repo, *changesets, **opts):
 
     with build_proxy(ui, opts) as client:
         assign(client, ctxhexs, committer)
+        ui.write('OK\n')
+
+
+@command('^add-reviewer', [
+    ('r', 'rev', [], _('revision(s) indentifying patch(es) to be assigned to committer'), _('REV')),
+    ('c', 'reviewer', '', _('login of the reviewer to add'), _('LOGIN')),
+    ]  + cnxopts,
+    _('[OPTION]... [-r] REV... -c LOGIN'))
+def addreviewer(ui, repo, *changesets, **opts):
+    """Add a reviewer to patches corresponding to specified revisions.
+
+    By default, the revision used is the parent of the working
+    directory: use -r/--rev to specify a different revision.
+    """
+    changesets += tuple(opts.get('rev', []))
+    if not changesets:
+        changesets = ('.',)
+    revs = scmutil.revrange(repo, changesets)
+    if not revs:
+        raise util.Abort(_('no working directory: please specify a revision'))
+    ctxhexs = (node.short(repo.lookup(rev)) for rev in revs)
+
+    reviewer = opts.get('reviewer', None)
+    if not reviewer:
+        raise util.Abort(_('unspecified reviewer login (-c LOGIN)'))
+
+    with build_proxy(ui, opts) as client:
+        add_reviewer(client, ctxhexs, reviewer)
         ui.write('OK\n')
 
 
