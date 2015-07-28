@@ -417,7 +417,7 @@ def make_ticket(ui, repo, *changesets, **opts):
 
 @command('^start-test', [
     ('r', 'rev', [], _('start apycot tests on the given revision(s)'), _('REV')),
-    ('l', 'label', 'quick python tests', _("the TestConfig's label to execute"), _('LABEL')),
+    ('t', 'tc-name', 'quick', _("the TestConfig's name to execute"), _('TCNAME')),
     ('o', 'option', [], _("options to add to the TestExecution"), _('OPTIONS')),
     ]  + cnxopts,
     _('[OPTION]... [-r] REV...'))
@@ -427,6 +427,8 @@ def runapycot(ui, repo, *changesets, **opts):
     By default, the revision used is the parent of the working
     directory: use -r/--rev to specify a different revision.
 
+    Use -t/--tc-name to specify the TestConfig which describes the
+    tests to be executed.
     """
     changesets += tuple(opts.get('rev', []))
     if not changesets:
@@ -435,11 +437,11 @@ def runapycot(ui, repo, *changesets, **opts):
     if not revs:
         raise util.Abort(_('no working directory: please specify a revision'))
     ctxhexs = [node.short(repo.lookup(rev)) for rev in revs]
-    label = opts.get('label', 'quick python tests')
+    tcname = opts.get('tc_name', 'quick')
     options = dict(o.split('=') for o in opts.get('option', []))
 
     with build_proxy(ui, opts) as client:
-        results = create_test_execution(client, ctxhexs, label, **options)
+        results = create_test_execution(client, ctxhexs, tcname, **options)
         rset = [x[0][0] if x else None for x in results]
         if all(rset):
             ui.write('OK ({})\n'.format(', '.join(str(eid) for eid in rset)))
@@ -457,7 +459,7 @@ def runapycot(ui, repo, *changesets, **opts):
     ]  + cnxopts,
     _('[OPTION]... [-r] REV...'))
 def listtc(ui, repo, *changesets, **opts):
-    """list TestConfig for the given revisions.
+    """list available test configurations for the given revisions.
 
     By default, the revision used is the parent of the working
     directory: use -r/--rev to specify a different revision.

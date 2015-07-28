@@ -12,12 +12,12 @@ WHERE
   PE local_repository REPO,
   CS from_repository REPO,
   CS changeset %(changeset)s ,
-  TC label %(label)s
+  TC name %(tcname)s
 """
 
-def create_test_execution(client, changesets, label, **kwargs):
+def create_test_execution(client, changesets, tcname, **kwargs):
     rql = START_TE_RQL
-    args = {'label': label}
+    args = {'tcname': tcname}
     if kwargs:
         options = u'\n'.join(u"%s=%s" % kv for kv in kwargs.items())
         rql1, rql2 = rql.split('WHERE')
