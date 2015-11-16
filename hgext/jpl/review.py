@@ -18,6 +18,17 @@ def ask_review(client, revs):
     return client.rqlio(queries)
 
 
+def acknowledge(client, revs, msg=None):
+    """Set patch reviewed OK
+    """
+    eids = client.rql(
+        '''Any P WHERE P patch_revision R, R changeset IN ({revs}),
+                       P in_state S, S name 'pending-review'
+        '''.format(revs=','.join('%r'%rev for rev in revs)))
+    queries = [builders.build_trinfo(eid[0], 'accept', comment=msg) for eid in eids]
+    return client.rqlio(queries)
+
+
 def show_review(client, revs, committer=None):
     query = '''\
 Any PN, P, GROUP_CONCAT(CSET), N, GROUP_CONCAT(L) GROUPBY PN,P,N

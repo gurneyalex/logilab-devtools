@@ -48,7 +48,8 @@ except AttributeError:
 demandimport.disable()
 from .jplproxy import build_proxy
 from .tasks import print_tasks
-from .review import ask_review, add_reviewer, show_review, sudo_make_me_a_ticket, assign
+from .review import (ask_review, acknowledge, add_reviewer, show_review,
+                     sudo_make_me_a_ticket, assign)
 from .apycot import create_test_execution, list_tc
 if enabled:
     demandimport.enable()
@@ -260,6 +261,30 @@ def askreview(ui, repo, *changesets, **opts):
     with build_proxy(ui, opts) as client:
         ask_review(client, ctxhexs)
         ui.write('OK\n')
+
+
+@command('^acknowledge', [
+    ('r', 'rev', [], _('ask review for the given revision(s)'), _('REV')),
+    ]  + cnxopts,
+    _('[OPTION]... [-r] REV...'))
+def accept(ui, repo, *changesets, **opts):
+    """accept patches corresponding to specified revisions
+
+    By default, the revision used is the parent of the working
+    directory: use -r/--rev to specify a different revision.
+
+    """
+    changesets += tuple(opts.get('rev', []))
+    if not changesets:
+        changesets = ('.')
+    revs = scmutil.revrange(repo, changesets)
+    if not revs:
+        raise util.Abort(_('no working directory: please specify a revision'))
+    ctxhexs = (node.short(repo.lookup(rev)) for rev in revs)
+
+    with build_proxy(ui, opts) as client:
+        acknowledge(client, ctxhexs)
+    showreview(ui, repo, *changesets, **opts)
 
 
 @command('^show-review', [
