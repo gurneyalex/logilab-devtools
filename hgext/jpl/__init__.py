@@ -311,7 +311,7 @@ def showreview(ui, repo, *changesets, **opts):
     committer = opts.get('committer', None)
 
     with build_proxy(ui, opts) as client:
-        rev = show_review(client, ctxhexs, committer)
+        review_results = show_review(client, ctxhexs, committer)
         if opts.get('test_results'):
             rql = ('Any PEN, TCN, ST WHERE TE status ST, TE using_revision REV, '
                    'REV changeset %(cset)s, '
@@ -321,7 +321,8 @@ def showreview(ui, repo, *changesets, **opts):
             test_results = dict(zip(ctxhexs, client.rqlio(queries)))
         else:
             test_results = None
-        _format_review_result(ui, repo, client, rev, test_results)
+        review_results.sort(key=lambda row: ctxhexs.index(row[2]), reverse=True)
+        _format_review_result(ui, repo, client, review_results, test_results)
 
 
 def _format_review_result(ui, repo, client, revs, test_results=None):
