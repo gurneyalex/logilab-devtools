@@ -310,6 +310,12 @@ def showreview(ui, repo, *changesets, **opts):
 
     committer = opts.get('committer', None)
 
+    def rset_revision_index(rset_row):
+        for revid in rset_row[2].split(','):
+            revid = revid.strip()
+            if revid in ctxhexs:
+                return ctxhexs.index(revid)
+
     with build_proxy(ui, opts) as client:
         review_results = show_review(client, ctxhexs, committer)
         if opts.get('test_results'):
@@ -321,7 +327,7 @@ def showreview(ui, repo, *changesets, **opts):
             test_results = dict(zip(ctxhexs, client.rqlio(queries)))
         else:
             test_results = None
-        review_results.sort(key=lambda row: ctxhexs.index(row[2]), reverse=True)
+        review_results.sort(key=rset_revision_index, reverse=True)
         _format_review_result(ui, repo, client, review_results, test_results)
 
 
