@@ -23,7 +23,7 @@ def acknowledge(client, revs, msg=None):
     """
     eids = client.rql(
         '''Any P WHERE P patch_revision R, R changeset IN ({revs}),
-                       P in_state S, S name 'pending-review'
+                       P in_state S, S name IN ('pending-review', 'in-progress')
         '''.format(revs=','.join('%r'%rev for rev in revs)))
     queries = [builders.build_trinfo(eid[0], 'accept', comment=msg) for eid in eids]
     return client.rqlio(queries)
