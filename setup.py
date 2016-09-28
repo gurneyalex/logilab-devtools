@@ -93,6 +93,9 @@ setup(
     # requirements files see:
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=['mercurial', 'cwclientlib'],
+    extra_requires={
+        'hgext.jpl': ['lxml', 'python-jenkins', 'requests-kerberos'],
+    },
 
     scripts=['bin/gmmerge', 'bin/grmerge', 'bin/ingrsh', 'bin/ingrsh.zsh',
              'bin/jobtest', 'bin/nicetests', 'bin/pygrep', 'bin/tagsmerge'],

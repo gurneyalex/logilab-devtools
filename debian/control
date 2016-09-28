@@ -52,6 +52,8 @@ Depends:
   mercurial (>= 3.0.0),
   python-cwclientlib (>= 0.3.0),
 Suggests:
+  python-lxml,
+  python-jenkins,
   python-requests-kerberos,
 Description: mercurial extensions to ease interaction with JPL-based forges
  This includes:
