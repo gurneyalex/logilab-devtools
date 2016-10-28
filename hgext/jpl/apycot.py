@@ -4,26 +4,31 @@
 START_TE_RQL = """\
 INSERT TestExecution TE:
   TE branch %(changeset)s,
-  TE using_environment PE,
-  TE using_config TC,
-  TE execution_of R
+  TE using_environment PE
 WHERE
-  TC use_recipe R,
   PE local_repository REPO,
   CS from_repository REPO,
-  CS changeset %(changeset)s ,
-  TC name %(tcname)s
+  CS changeset %(changeset)s
 """
 
-def create_test_execution(client, changesets, tcname, **kwargs):
-    rql = START_TE_RQL
-    args = {'tcname': tcname}
+def create_test_execution(client, changesets, tcname=None, **kwargs):
+    args = {}
+    rql1, rql2 = START_TE_RQL.split('WHERE')
+    if kwargs.pop('keep_archive', False):
+        rql1 = rql1 + ', TE keep_archive TRUE'
+    script = kwargs.pop('script', None)
+    if script:
+        rql1 = rql1 + ', TE script %(script)s'
+        args['script'] = open(script, 'r').read().encode('utf-8')
+    if tcname:
+        rql1 += ', TE using_config TC, TE execution_of R'
+        rql2 += ', TC use_recipe R, TC name %(tcname)s'
+        args['tcname'] = tcname
     if kwargs:
-        options = u'\n'.join(u"%s=%s" % kv for kv in kwargs.items())
-        rql1, rql2 = rql.split('WHERE')
-        rql = '{0}, TE options %(options)s WHERE {1}'.format(rql1, rql2)
-        args['options'] = options
+        rql1 = rql1 + ', TE options %(options)s'
+        args['options'] = u'\n'.join(u"%s=%s" % kv for kv in kwargs.items())
 
+    rql = '\n'.join((rql1, 'WHERE', rql2))
     queries = [(rql, dict(changeset=cs, **args))
                for cs in changesets]
     return client.rqlio(queries)
