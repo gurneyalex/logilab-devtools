@@ -469,7 +469,7 @@ def runapycot(ui, repo, *changesets, **opts):
     if not revs:
         raise util.Abort(_('no working directory: please specify a revision'))
     ctxhexs = [node.short(repo.lookup(rev)) for rev in revs]
-    tcname = opts.get('tc_name', 'quick')
+    tcname = opts.get('tc_name', None)
     options = dict(o.split('=') for o in opts.get('option', []))
 
     with build_proxy(ui, opts) as client:
