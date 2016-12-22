@@ -11,6 +11,7 @@ WHERE
   CS changeset %(changeset)s
 """
 
+
 def create_test_execution(client, changesets, tcname=None, **kwargs):
     args = {}
     rql1, rql2 = START_TE_RQL.split('WHERE')
@@ -33,6 +34,7 @@ def create_test_execution(client, changesets, tcname=None, **kwargs):
                for cs in changesets]
     return client.rqlio(queries)
 
+
 LIST_TC_RQL = """\
 Any TCN, TCL
 WHERE
@@ -42,6 +44,7 @@ WHERE
   CS changeset %(changeset)s ,
   TC label TCL, TC name TCN
 """
+
 
 def list_tc(client, changesets):
     rql = LIST_TC_RQL

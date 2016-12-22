@@ -1,15 +1,13 @@
 #!/usr/bin/python
 # -*- coding: utf-8
 
-
-URL = 'https://www.cubicweb.org/'
-
 from contextlib import contextmanager
-from mercurial import util
 from mercurial.i18n import _
 from requests import ConnectionError, HTTPError
 
 from cwclientlib import cwproxy, cwproxy_for
+
+URL = 'https://www.cubicweb.org/'
 
 
 def wraprql(meth):
@@ -19,8 +17,8 @@ def wraprql(meth):
             reply.raise_for_status()
             return reply.json()
         except ValueError:
-            print "ERROR:", reply.text
-            print "REQ:", args, kwargs
+            print("ERROR: %s" % reply.text)
+            print("REQ: %s %s" % (args, kwargs))
             return None
         except HTTPError as exc:
             return '\n'.join(("%s" % exc, reply.json()['reason']))
@@ -47,7 +45,7 @@ def getcwcliopt(name, ui, opts, default=None, isbool=False):
     if opts and opts.get(name):
         value = opts[name]
     if isbool and value not in (None, True, False):
-        value = value.lower() in ('t','true','1','y','yes')
+        value = value.lower() in ('t', 'true', '1', 'y', 'yes')
     return value
 
 
