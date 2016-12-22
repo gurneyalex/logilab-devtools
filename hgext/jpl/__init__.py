@@ -511,18 +511,18 @@ def runapycot(ui, repo, *changesets, **opts):
     with build_proxy(ui, opts) as client:
         results = create_test_execution(client, ctxhexs, tcname, **options)
         rset = [x[0][0] if x else None for x in results]
-        if all(rset):
-            ui.write('OK ({})\n'.format(', '.join(str(eid) for eid in rset)))
+        started = [client.build_url(str(eid)) for eid in rset if eid]
+        if any(rset):
+            ui.write('started:\n{}\n'.format(
+                '\n'.join("* {}".format(e) for e in started)))
+            failed = [cset for (cset, result)
+                      in zip(ctxhexs, rset) if cset.strip() and not result]
+            if failed:
+                ui.write('WARNING: could not create tests for {}\n'.format(
+                    ', '.join(failed)))
         else:
-            if any(rset):
-                ui.write('PARTIAL ({})\n'.format(
-                    ', '.join(str(eid) for eid in rset if eid)))
-            else:
-                ui.write('FAILED\n')
-            failed = (cset for cset,
-                      result in zip(ctxhexs, rset) if not result)
-            ui.write('  could not create tests for {}\n'.format(
-                ', '.join(failed)))
+            ui.write('FAILED\n')
+        ui.write('\n')
 
 
 @command('^list-tc', [
