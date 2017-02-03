@@ -81,12 +81,16 @@ def showbuildstatus(**args):
     cache = args['cache']
     debug = ui.debugflag
 
-    if 'repo_url' not in cache:
-        rev = node.short(repo.lookup(ctx.hex()))
-        cache['repo_url'] = repourl_from_rev(rev, ui)
-    elif debug:
-        ui.debug('using cached repository URL\n')
-    repo_url = cache['repo_url']
+    if 'repo_url' in cache:
+        if debug:
+            ui.debug('using cached repository URL\n')
+        repo_url = cache['repo_url']
+    else:
+        repo_url = ui.config('jenkins', 'repo-url')
+        if not repo_url:
+            rev = node.short(repo.lookup(ctx.hex()))
+            repo_url = repourl_from_rev(rev, ui)
+        cache['repo_url'] = repo_url
 
     url = ui.config('jenkins', 'url')
     if not url:
