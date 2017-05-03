@@ -1,5 +1,7 @@
 from __future__ import absolute_import
 
+import json
+
 from six.moves import urllib
 
 from lxml import etree
@@ -71,15 +73,36 @@ def buildinfo_for_job(jenkins_server, job_name):
                 break
     return build_for_hgnode
 
+class jenkinsstore(object):
+
+    def __init__(self, svfs):
+        self.svfs = svfs
+        self.cache = {}
+
+    def load(self):
+        data = self.svfs.tryread('jenkins')
+        if data:
+            self.cache = json.loads(data)
+        return self.cache
+
+    def save(self):
+        with self.svfs('jenkins', 'w') as f:
+            json.dump(self.cache, f)
 
 def showbuildstatus(**args):
     """:build_status: String. Status of build.
     """
     repo = args['repo']
     ui = repo.ui
-    ctx = args['ctx']
-    cache = args['cache']
     debug = ui.debugflag
+    ctx = args['ctx']
+    store = jenkinsstore(repo.svfs)
+    storecache = store.load()
+    if debug:
+        if not storecache:
+            ui.debug('jenkins cache is empty\n')
+        else:
+            ui.debug('jenkins cache: {}\n'.format(storecache))
 
     url = ui.config('jenkins', 'url')
     if not url:
@@ -88,29 +111,29 @@ def showbuildstatus(**args):
     password = ui.config('jenkins', 'password')
     server = Jenkins(url, username=username, password=password)
 
-    if 'jobs' not in cache:
+    if 'jobs' not in storecache:
         jobname = ui.config('jenkins', 'job')
         if jobname:
             jobs = [jobname]
         else:
             # look for jobs matching repository URL
-            if 'repo_url' in cache:
+            if 'repo_url' in storecache:
                 if debug:
                     ui.debug('using cached repository URL\n')
-                repo_url = cache['repo_url']
+                repo_url = storecache['repo_url']
             else:
                 repo_url = ui.config('jenkins', 'repo-url')
                 if not repo_url:
                     rev = node.short(repo.lookup(ctx.hex()))
                     repo_url = repourl_from_rev(rev, ui)
-                cache['repo_url'] = repo_url
+                storecache['repo_url'] = repo_url
             jobs = jobs_from_hgurl(ui, server, repo_url, ctx.branch())
-        cache['jobs'] = {name: {} for name in jobs}
+        storecache['jobs'] = {name: {} for name in jobs}
     elif debug:
         ui.debug('using cached jobs\n')
 
     jobs_buildinfo = []
-    for job, jobcache in cache['jobs'].iteritems():
+    for job, jobcache in storecache['jobs'].iteritems():
         if not jobcache:
             jobcache.update(buildinfo_for_job(server, job))
         elif debug:
@@ -126,6 +149,7 @@ def showbuildstatus(**args):
         build_url = build_info['url']
         jobs_buildinfo.append(
             '{}: {} - {}'.format(job, status, build_url))
+    store.save()
 
     if not jobs_buildinfo:
         jobs_buildinfo.append('NOT BUILT')
