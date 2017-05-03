@@ -89,17 +89,22 @@ def showbuildstatus(**args):
     server = Jenkins(url, username=username, password=password)
 
     if 'jobs' not in cache:
-        if 'repo_url' in cache:
-            if debug:
-                ui.debug('using cached repository URL\n')
-            repo_url = cache['repo_url']
+        jobname = ui.config('jenkins', 'job')
+        if jobname:
+            jobs = [jobname]
         else:
-            repo_url = ui.config('jenkins', 'repo-url')
-            if not repo_url:
-                rev = node.short(repo.lookup(ctx.hex()))
-                repo_url = repourl_from_rev(rev, ui)
-            cache['repo_url'] = repo_url
-        jobs = jobs_from_hgurl(ui, server, repo_url, ctx.branch())
+            # look for jobs matching repository URL
+            if 'repo_url' in cache:
+                if debug:
+                    ui.debug('using cached repository URL\n')
+                repo_url = cache['repo_url']
+            else:
+                repo_url = ui.config('jenkins', 'repo-url')
+                if not repo_url:
+                    rev = node.short(repo.lookup(ctx.hex()))
+                    repo_url = repourl_from_rev(rev, ui)
+                cache['repo_url'] = repo_url
+            jobs = jobs_from_hgurl(ui, server, repo_url, ctx.branch())
         cache['jobs'] = {name: {} for name in jobs}
     elif debug:
         ui.debug('using cached jobs\n')
