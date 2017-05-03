@@ -126,4 +126,4 @@ def showbuildstatus(**args):
     if not jobs_buildinfo:
         jobs_buildinfo.append('NOT BUILT')
 
-    return templatekw.showlist('build_status', jobs_buildinfo, **args)
+    return templatekw.showlist('build_status', jobs_buildinfo, args)
