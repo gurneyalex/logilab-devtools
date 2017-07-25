@@ -156,6 +156,27 @@ def showbuildstatus(**args):
 
     return templatekw.showlist('build_status', jobs_buildinfo, args)
 
+try:
+    from hgext.show import showview
+except ImportError:
+    pass
+else:
+    from mercurial import cmdutil, formatter, graphmod
+
+    tmpl = '{label("changeset.{phase}{if(troubles, \' changeset.troubled\')}", shortest(node, 5))} {desc|firstline} ({author|user})\n  {build_status}\n'
+
+    @showview('jenkins')
+    def showjenkins(ui, repo):
+        """Jenkins build status"""
+        revs = repo.revs('sort(_underway(), topo)')
+
+        revdag = graphmod.dagwalker(repo, revs)
+
+        ui.setconfig('experimental', 'graphshorten', True)
+        spec = formatter.lookuptemplate(ui, None, tmpl)
+        displayer = cmdutil.changeset_templater(ui, repo, spec, buffered=True)
+        cmdutil.displaygraph(ui, repo, revdag, displayer, graphmod.asciiedges)
+
 def extsetup(ui):
     if ui.config('jenkins', 'url'):
         templatekw.keywords['build_status'] = showbuildstatus
