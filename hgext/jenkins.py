@@ -7,13 +7,13 @@ from six.moves import urllib
 from lxml import etree
 from jenkins import Jenkins
 from mercurial import templatekw, node, error
-from .jplproxy import build_proxy
 
 
 def repourl_from_rev(hgnode, ui):
+    from hgext.jpl import jplproxy
     query = ('Any URL WHERE REV changeset %(rev)s, REV from_repository REPO,'
              ' REPO source_url URL')
-    with build_proxy(ui) as client:
+    with jplproxy.build_proxy(ui) as client:
         rset = client.execute(query, {'rev': hgnode})
         if rset:
             return rset[0][0]
@@ -155,3 +155,7 @@ def showbuildstatus(**args):
         jobs_buildinfo.append('NOT BUILT')
 
     return templatekw.showlist('build_status', jobs_buildinfo, args)
+
+def extsetup(ui):
+    if ui.config('jenkins', 'url'):
+        templatekw.keywords['build_status'] = showbuildstatus
