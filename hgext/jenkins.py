@@ -34,7 +34,7 @@ def jobs_from_hgurl(ui, jenkins_server, url, branch):
         if debug:
             ui.debug('* %s\n' % job_name)
         config = jenkins_server.get_job_config(job_name)
-        root = etree.fromstring(config)
+        root = etree.fromstring(config.encode('utf-8'))
         for scm in root.findall('scm'):
             for source in scm.iterchildren('source'):
                 break
