@@ -56,7 +56,6 @@ from .review import (ask_review, acknowledge, add_reviewer, show_review,
 from .apycot import create_test_execution, list_tc
 if enabled:
     demandimport.enable()
-from .jenkins import showbuildstatus
 
 cmdtable = {}
 command = cmdutil.command(cmdtable)
@@ -204,8 +203,6 @@ def extsetup(ui):
         mercurial.revset.symbols['tasks'] = tasks_predicate
         mercurial.revset.symbols['inversion'] = inversion
         mercurial.templatekw.keywords['tasks'] = showtasks
-    if ui.config('jenkins', 'url'):
-        mercurial.templatekw.keywords['build_status'] = showbuildstatus
 
 
 cnxopts = [
