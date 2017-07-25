@@ -74,15 +74,31 @@ def buildinfo_for_job(jenkins_server, job_name):
     return build_for_hgnode
 
 class jenkinsstore(object):
+    """file-system cache for Jenkins data.
 
-    def __init__(self, svfs):
+    The cache is invalidated (not used and thus rebuilt) when specified
+    `tiprev` is greater that stored one, typically after a pull.
+    """
+
+    def __init__(self, svfs, tiprev):
         self.svfs = svfs
-        self.cache = {}
+        self.cache = {'tip': tiprev}
 
-    def load(self):
+    def load(self, ui):
+        """Possibly load "jenkins" store cache if still valid (w.r.t. tiprev).
+        """
         data = self.svfs.tryread('jenkins')
         if data:
-            self.cache = json.loads(data)
+            data = json.loads(data)
+            try:
+                storedtiprev = data['tip']
+            except KeyError:
+                pass
+            else:
+                if storedtiprev >= self.cache['tip']:
+                    self.cache = data
+                else:
+                    ui.warn('rebuidling "jenkins" store\n')
         return self.cache
 
     def save(self):
@@ -96,10 +112,10 @@ def showbuildstatus(**args):
     ui = repo.ui
     debug = ui.debugflag
     ctx = args['ctx']
-    store = jenkinsstore(repo.svfs)
-    storecache = store.load()
+    store = jenkinsstore(repo.svfs, repo['tip'].rev())
+    storecache = store.load(ui)
     if debug:
-        if not storecache:
+        if len(storecache) <= 1:
             ui.debug('jenkins cache is empty\n')
         else:
             ui.debug('jenkins cache: {}\n'.format(storecache))
