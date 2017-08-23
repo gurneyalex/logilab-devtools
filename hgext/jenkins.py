@@ -1,3 +1,20 @@
+"""show Jenkins build information for Mercurial changesets
+
+This extension provides:
+
+* a "build_status" template keyword
+* a "jenkins" view for `hg show` command (requires the built-in "show"
+  extension)
+
+Information to access the Jenkins server and job needs to be defined in a
+"jenkins" configuration section::
+
+  [jenkins]
+  url = <URL of Jenkins server>
+  job = <name of the job>
+  username = <Jenkins user ID>
+  password = <respective Jenkins user API token>
+"""
 from __future__ import absolute_import
 
 import json

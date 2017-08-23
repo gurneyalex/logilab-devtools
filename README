@@ -41,6 +41,11 @@ They must be activated from a Mercurial_ configuration file::
   grmerge.executable = path/to/grmerge
   grmerge.args = $local $base $other -o $output
 
+hgext/jenkins
+-------------
+
+A Mercurial_ extension to show Jenkins build information for changesets.
+
 hgext/jpl.py
 ------------
 
