@@ -1,3 +1,5 @@
+.. -*- coding: utf-8 -*-
+
 Logilab's development tools
 ===========================
 
@@ -8,7 +10,7 @@ Set of tools which aims to help the development process, including :
   * provides integration assistance to work with CubicWeb_, Mercurial_
     and GuestRepo_.
 
-Set of elisp goodies including :
+Set of `elisp` goodies including :
 
   * an emacs mode for pycover files
   * an emacs mode for ChangeLog files
@@ -82,7 +84,7 @@ config setup.  See cwclientlib_ documentation for more informations.
     [lgl]
     forge-url = <url>
     auth-xxx = xxx
-    
+
   should be replaced by::
 
     [jpl]
@@ -103,28 +105,28 @@ Commands
 
 :assign:
   Assign patches corresponding to specified revisions to a committer.
-  
+
 :backlog:
   Show the backlog (draft changesets) of specified committer.
-  
+
 :list-tc:
   List TestConfig available for project linked to the repository.
-  
+
 :make-ticket:
   Create new tickets for the specified revisions.
-  
+
 :show-review:
   Show review status for patches corresponding to specified revisions, eg.::
 
     $ hg show-review  -r 82071f767cb8 -T
     https://www.cubicweb.org/5457568 82071f767cb8   [applied]       abegey
     [schemas] cwuri should be read-only
-    
+
     #82071f767cb8 nologin env/quick: partial
     #82071f767cb8 cubicweb-newsaggregator env/quick: failure
     #82071f767cb8 ner test env/quick: partial
     #82071f767cb8 person env/quick: success
- 
+
 :start-test:
   Start Apycot tests for the given revisions, eg.::
 
@@ -133,7 +135,7 @@ Commands
 
 :tasks:
   Displays tasks requested by reviewers on a patch on a forge.
-  
+
 
 Revset functions
 ~~~~~~~~~~~~~~~~
