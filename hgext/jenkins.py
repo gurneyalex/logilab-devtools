@@ -23,8 +23,25 @@ from six.moves import urllib
 
 from lxml import etree
 from jenkins import Jenkins
-from mercurial import templatekw, node, error
+from mercurial import (
+    templatekw,
+    node,
+    error,
+    registrar,
+)
 
+cmdtable = {}
+command = registrar.command(cmdtable)
+
+@command('debugjenkins', [
+    ('', 'clear', None, 'clear Jenkins store'),
+])
+def debugjenkins(ui, repo, **opts):
+    """debug actions for 'jenkins' extension."""
+    if opts.get(r'clear'):
+        jenkinsstore(repo.svfs, None).clear()
+    else:
+        ui.warn('no option specified, did nothing\n')
 
 def repourl_from_rev(hgnode, ui):
     from hgext.jpl import jplproxy
