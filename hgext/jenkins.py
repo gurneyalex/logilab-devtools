@@ -122,6 +122,9 @@ class jenkinsstore(object):
         with self.svfs('jenkins', 'w') as f:
             json.dump(self.cache, f)
 
+    def clear(self):
+        self.svfs.unlink('jenkins')
+
 def showbuildstatus(**args):
     """:build_status: String. Status of build.
     """
