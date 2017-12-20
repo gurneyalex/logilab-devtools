@@ -22,7 +22,10 @@ import json
 from six.moves import urllib
 
 from lxml import etree
-from jenkins import Jenkins
+from jenkins import (
+    Jenkins,
+    NotFoundException,
+)
 from mercurial import (
     templatekw,
     node,
@@ -92,7 +95,12 @@ def jobs_from_hgurl(ui, jenkins_server, url, branch):
 
 def buildinfo_for_job(jenkins_server, job_name):
     build_for_hgnode = {}
-    for build in jenkins_server.get_job_info(job_name)['builds']:
+    try:
+        jobinfo = jenkins_server.get_job_info(job_name)
+    except NotFoundException:
+        raise error.ConfigError("job '%s' not found" % job_name,
+                                hint='see if jenkins.job config entry is correct')
+    for build in jobinfo['builds']:
         build_number = build['number']
         build_info = jenkins_server.get_build_info(job_name, build_number)
         for action in build_info['actions']:
