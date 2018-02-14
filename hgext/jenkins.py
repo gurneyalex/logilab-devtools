@@ -47,7 +47,13 @@ def debugjenkins(ui, repo, **opts):
         ui.warn('no option specified, did nothing\n')
 
 def repourl_from_rev(hgnode, ui):
-    from hgext.jpl import jplproxy
+    try:
+        from hgext.jpl import jplproxy
+    except ImportError:
+        raise error.Abort(
+            'failed to load hgext.jpl',
+            hint='set "jenkins.job" or "jenkins.repo-url" option to avoid getting here',
+        )
     query = ('Any URL WHERE REV changeset %(rev)s, REV from_repository REPO,'
              ' REPO source_url URL')
     with jplproxy.build_proxy(ui) as client:
