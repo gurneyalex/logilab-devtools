@@ -229,6 +229,17 @@ except ImportError:
     pass
 else:
     from mercurial import cmdutil, formatter, graphmod
+    try:
+        from mercurial.logcmdutil import (
+            displaygraph,
+            changesettemplater,
+        )
+    except ImportError:
+        # Mercurial < 4.6
+        from mercurial.cmdutil import (
+            displaygraph,
+            changeset_templater as changesettemplater,
+        )
 
     tmpl = '{label("changeset.{phase}{if(troubles, \' changeset.troubled\')}", shortest(node, 5))} {desc|firstline} ({author|user})\n  {build_status}\n'
 
@@ -241,8 +252,8 @@ else:
 
         ui.setconfig('experimental', 'graphshorten', True)
         spec = formatter.lookuptemplate(ui, None, tmpl)
-        displayer = cmdutil.changeset_templater(ui, repo, spec, buffered=True)
-        cmdutil.displaygraph(ui, repo, revdag, displayer, graphmod.asciiedges)
+        displayer = changesettemplater(ui, repo, spec, buffered=True)
+        displaygraph(ui, repo, revdag, displayer, graphmod.asciiedges)
 
 def extsetup(ui):
     if ui.config('jenkins', 'url'):
