@@ -156,13 +156,13 @@ class jenkinsstore(object):
     def clear(self):
         self.svfs.unlink('jenkins')
 
-def showbuildstatus(**args):
+def showbuildstatus(context, mapping):
     """:build_status: String. Status of build.
     """
-    repo = args['repo']
+    repo = context.resource(mapping, 'repo')
     ui = repo.ui
     debug = ui.debugflag
-    ctx = args['ctx']
+    ctx = context.resource(mapping, 'ctx')
     store = jenkinsstore(repo.svfs, repo['tip'].rev())
     storecache = store.load(ui)
     if debug:
@@ -221,7 +221,7 @@ def showbuildstatus(**args):
     if not jobs_buildinfo:
         jobs_buildinfo.append('NOT BUILT')
 
-    return templatekw.showlist('build_status', jobs_buildinfo, args)
+    return templatekw.compatlist(context, mapping, 'build_status', jobs_buildinfo)
 
 try:
     from hgext.show import showview
@@ -257,4 +257,6 @@ else:
 
 def extsetup(ui):
     if ui.config('jenkins', 'url'):
-        templatekw.keywords['build_status'] = showbuildstatus
+        templatekw.templatekeyword(
+            'build_status', requires={'ctx', 'repo'},
+        )(showbuildstatus)
