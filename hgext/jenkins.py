@@ -17,6 +17,7 @@ Information to access the Jenkins server and job needs to be defined in a
 """
 from __future__ import absolute_import
 
+from collections import defaultdict
 import json
 
 from six.moves import urllib
@@ -100,7 +101,8 @@ def jobs_from_hgurl(ui, jenkins_server, url, branch):
 
 
 def buildinfo_for_job(jenkins_server, job_name):
-    build_for_hgnode = {}
+    # We retrieve all builds matching a hg-node.
+    build_for_hgnode = defaultdict(list)
     try:
         jobinfo = jenkins_server.get_job_info(job_name)
     except NotFoundException:
@@ -112,14 +114,20 @@ def buildinfo_for_job(jenkins_server, job_name):
         for action in build_info['actions']:
             hgnode = action.get('mercurialNodeName')
             if hgnode:
-                build_for_hgnode[hgnode] = {
+                build_for_hgnode[hgnode].append({
                     'number': build_number,
                     'status': build_info['result'],
                     'building': build_info['building'],
                     'url': build_info['url'],
-                }
+                })
                 break
+    # Ultimately, we only keep the latest build (i.e. the one with largest
+    # build number) for each hg-node.
+    for hgnode, values in build_for_hgnode.items():
+        values.sort(key=lambda d: d['number'])
+        build_for_hgnode[hgnode] = values[-1]
     return build_for_hgnode
+
 
 class jenkinsstore(object):
     """file-system cache for Jenkins data.
