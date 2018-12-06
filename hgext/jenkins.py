@@ -12,8 +12,12 @@ Information to access the Jenkins server and job needs to be defined in a
   [jenkins]
   url = <URL of Jenkins server>
   job = <name of the job>
-  username = <Jenkins user ID>
-  password = <respective Jenkins user API token>
+
+  [auth]
+  jenkins.schemes = https
+  jenkins.prefix = jenkins.logilab.org
+  jenkins.username = <Jenkins user ID>
+  jenkins.password = <respective Jenkins user API token>
 """
 from __future__ import absolute_import
 
@@ -28,10 +32,12 @@ from jenkins import (
     NotFoundException,
 )
 from mercurial import (
+    httpconnection as httpconnectionmod,
     templatekw,
     node,
     error,
     registrar,
+    util,
 )
 
 cmdtable = {}
@@ -182,6 +188,20 @@ def showbuildstatus(context, mapping):
     url = ui.config('jenkins', 'url')
     if not url:
         raise error.Abort('jenkins.url configuration option is not defined')
+    res = httpconnectionmod.readauthforuri(repo.ui, url, util.url(url).user)
+    if res:
+        group, auth = res
+        ui.debug("using auth.%s.* for authentication\n" % group)
+        username = auth.get('username')
+        password = auth.get('password')
+        if not username or not password:
+            raise error.Abort(
+                "cannot fine 'username' and/or 'password' values for %s"
+                % url
+            )
+    else:
+        ui.debug("no 'auth' configuration for %s\n" % url)
+        username, password = None, None
     username = ui.config('jenkins', 'username')
     password = ui.config('jenkins', 'password')
     server = Jenkins(url, username=username, password=password)
