@@ -43,15 +43,15 @@ from mercurial import (
 cmdtable = {}
 command = registrar.command(cmdtable)
 
-@command('debugjenkins', [
-    ('', 'clear', None, 'clear Jenkins store'),
+@command(b'debugjenkins', [
+    (b'', b'clear', None, b'clear Jenkins store'),
 ])
 def debugjenkins(ui, repo, **opts):
     """debug actions for 'jenkins' extension."""
     if opts.get(r'clear'):
         jenkinsstore(repo.svfs, None).clear()
     else:
-        ui.warn('no option specified, did nothing\n')
+        ui.warn(b'no option specified, did nothing\n')
 
 def repourl_from_rev(hgnode, ui):
     try:
@@ -82,7 +82,7 @@ def jobs_from_hgurl(ui, jenkins_server, url, branch):
     for job in jenkins_server.get_jobs():
         job_name = job['name']
         if debug:
-            ui.debug('* %s\n' % job_name)
+            ui.debug(b'* %s\n' % job_name)
         config = jenkins_server.get_job_config(job_name)
         root = etree.fromstring(config.encode('utf-8'))
         for scm in root.findall('scm'):
@@ -90,7 +90,7 @@ def jobs_from_hgurl(ui, jenkins_server, url, branch):
                 break
             else:
                 if debug:
-                    ui.debug(' -> no scm definition, skipping\n')
+                    ui.debug(b' -> no scm definition, skipping\n')
                 continue
             revision = None
             for rev_elem in scm.iterchildren('revision'):
@@ -99,10 +99,10 @@ def jobs_from_hgurl(ui, jenkins_server, url, branch):
             job_url = source.text
             if match_url(job_url) and branch and branch == revision:
                 if debug:
-                    ui.debug(' -> matching (revision: %s)\n' % revision)
+                    ui.debug(b' -> matching (revision: %s)\n' % revision)
                 yield job_name
             elif debug:
-                ui.debug(' -> source url %s not matching %s\n' % (job_url, url))
+                ui.debug(b' -> source url %s not matching %s\n' % (job_url, url))
     # raise error.Abort('no Jenkins job matching repository url %s' % url)
 
 
@@ -149,9 +149,9 @@ class jenkinsstore(object):
     def load(self, ui):
         """Possibly load "jenkins" store cache if still valid (w.r.t. tiprev).
         """
-        data = self.svfs.tryread('jenkins')
+        data = self.svfs.tryread(b'jenkins')
         if data:
-            data = json.loads(data)
+            data = json.loads(data.decode('utf-8'))
             try:
                 storedtiprev = data['tip']
             except KeyError:
@@ -160,38 +160,38 @@ class jenkinsstore(object):
                 if storedtiprev >= self.cache['tip']:
                     self.cache = data
                 else:
-                    ui.warn('rebuidling "jenkins" store\n')
+                    ui.warn(b'rebuidling "jenkins" store\n')
         return self.cache
 
     def save(self):
-        with self.svfs('jenkins', 'w') as f:
-            json.dump(self.cache, f)
+        with self.svfs(b'jenkins', b'wb') as f:
+            f.write(json.dumps(self.cache).encode('utf-8'))
 
     def clear(self):
-        self.svfs.unlink('jenkins')
+        self.svfs.unlink(b'jenkins')
 
 def showbuildstatus(context, mapping):
     """:build_status: String. Status of build.
     """
-    repo = context.resource(mapping, 'repo')
+    repo = context.resource(mapping, b'repo')
     ui = repo.ui
     debug = ui.debugflag
-    ctx = context.resource(mapping, 'ctx')
-    store = jenkinsstore(repo.svfs, repo['tip'].rev())
+    ctx = context.resource(mapping, b'ctx')
+    store = jenkinsstore(repo.svfs, repo[b'tip'].rev())
     storecache = store.load(ui)
     if debug:
         if len(storecache) <= 1:
-            ui.debug('jenkins cache is empty\n')
+            ui.debug(b'jenkins cache is empty\n')
         else:
-            ui.debug('jenkins cache: {}\n'.format(storecache))
+            ui.debug(b'jenkins cache: {}\n'.format(storecache))
 
-    url = ui.config('jenkins', 'url')
+    url = ui.config(b'jenkins', b'url')
     if not url:
         raise error.Abort('jenkins.url configuration option is not defined')
     res = httpconnectionmod.readauthforuri(repo.ui, url, util.url(url).user)
     if res:
         group, auth = res
-        ui.debug("using auth.%s.* for authentication\n" % group)
+        ui.debug(b"using auth.%s.* for authentication\n" % group)
         username = auth.get('username')
         password = auth.get('password')
         if not username or not password:
@@ -200,24 +200,24 @@ def showbuildstatus(context, mapping):
                 % url
             )
     else:
-        ui.debug("no 'auth' configuration for %s\n" % url)
+        ui.debug(b"no 'auth' configuration for %s\n" % url)
         username, password = None, None
-    username = ui.config('jenkins', 'username')
-    password = ui.config('jenkins', 'password')
-    server = Jenkins(url, username=username, password=password)
+    username = ui.config(b'jenkins', b'username')
+    password = ui.config(b'jenkins', b'password')
+    server = Jenkins(url.decode('utf-8'), username=username, password=password)
 
     if 'jobs' not in storecache:
-        jobname = ui.config('jenkins', 'job')
+        jobname = ui.config(b'jenkins', b'job').decode('utf-8')
         if jobname:
             jobs = [jobname]
         else:
             # look for jobs matching repository URL
             if 'repo_url' in storecache:
                 if debug:
-                    ui.debug('using cached repository URL\n')
+                    ui.debug(b'using cached repository URL\n')
                 repo_url = storecache['repo_url']
             else:
-                repo_url = ui.config('jenkins', 'repo-url')
+                repo_url = ui.config(b'jenkins', b'repo-url')
                 if not repo_url:
                     rev = node.short(repo.lookup(ctx.hex()))
                     repo_url = repourl_from_rev(rev, ui)
@@ -225,31 +225,32 @@ def showbuildstatus(context, mapping):
             jobs = jobs_from_hgurl(ui, server, repo_url, ctx.branch())
         storecache['jobs'] = {name: {} for name in jobs}
     elif debug:
-        ui.debug('using cached jobs\n')
+        ui.debug(b'using cached jobs\n')
 
-    jobs_buildinfo = []
-    for job, jobcache in storecache['jobs'].iteritems():
-        if not jobcache:
-            jobcache.update(buildinfo_for_job(server, job))
-        elif debug:
-            ui.debug('using cached build info for job %s\n' % job)
-        build_info = jobcache.get(ctx.hex())
-        if not build_info:
-            jobs_buildinfo.append('{}: NOT BUILT'.format(job))
-            continue
-        if build_info['building']:
-            status = 'BUILDING'
-        else:
-            status = build_info['status']
-        build_url = build_info['url']
-        jobs_buildinfo.append(
-            '{}: {} - {}'.format(job, status, build_url))
+    def gen_jobs_buildinfo():
+        for job, jobcache in storecache['jobs'].items():
+            if not jobcache:
+                jobcache.update(buildinfo_for_job(server, job))
+            elif debug:
+                ui.debug(b'using cached build info for job %s\n' % job)
+            build_info = jobcache.get(ctx.hex().decode('utf-8'))
+            if not build_info:
+                yield '{}: NOT BUILT'.format(job)
+                continue
+            if build_info['building']:
+                status = 'BUILDING'
+            else:
+                status = build_info['status']
+            build_url = build_info['url']
+            yield '{}: {} - {}'.format(job, status, build_url)
+
+    jobs_buildinfo = [v.encode('utf-8') for v in gen_jobs_buildinfo()]
     store.save()
 
     if not jobs_buildinfo:
-        jobs_buildinfo.append('NOT BUILT')
+        jobs_buildinfo.append(b'NOT BUILT')
 
-    return templatekw.compatlist(context, mapping, 'build_status', jobs_buildinfo)
+    return templatekw.compatlist(context, mapping, b'build_status', jobs_buildinfo)
 
 try:
     from hgext.show import showview
@@ -269,22 +270,22 @@ else:
             changeset_templater as changesettemplater,
         )
 
-    tmpl = '{label("changeset.{phase}{if(troubles, \' changeset.troubled\')}", shortest(node, 5))} {desc|firstline} ({author|user})\n  {build_status}\n'
+    tmpl = b'{label("changeset.{phase}{if(troubles, \' changeset.troubled\')}", shortest(node, 5))} {desc|firstline} ({author|user})\n  {build_status}\n'
 
-    @showview('jenkins')
+    @showview(b'jenkins')
     def showjenkins(ui, repo):
         """Jenkins build status"""
         revs = repo.revs('sort(_underway(), topo)')
 
         revdag = graphmod.dagwalker(repo, revs)
 
-        ui.setconfig('experimental', 'graphshorten', True)
+        ui.setconfig(b'experimental', b'graphshorten', True)
         spec = formatter.lookuptemplate(ui, None, tmpl)
         displayer = changesettemplater(ui, repo, spec, buffered=True)
         displaygraph(ui, repo, revdag, displayer, graphmod.asciiedges)
 
 def extsetup(ui):
-    if ui.config('jenkins', 'url'):
+    if ui.config(b'jenkins', b'url'):
         templatekw.templatekeyword(
-            'build_status', requires={'ctx', 'repo'},
+            b'build_status', requires={'ctx', 'repo'},
         )(showbuildstatus)
