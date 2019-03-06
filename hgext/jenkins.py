@@ -40,8 +40,10 @@ from mercurial import (
     util,
 )
 
+
 cmdtable = {}
 command = registrar.command(cmdtable)
+
 
 @command(b'debugjenkins', [
     (b'', b'clear', None, b'clear Jenkins store'),
@@ -53,13 +55,15 @@ def debugjenkins(ui, repo, **opts):
     else:
         ui.warn(b'no option specified, did nothing\n')
 
+
 def repourl_from_rev(hgnode, ui):
     try:
         from hgext.jpl import jplproxy
     except ImportError:
         raise error.Abort(
             'failed to load hgext.jpl',
-            hint='set "jenkins.job" or "jenkins.repo-url" option to avoid getting here',
+            hint=('set "jenkins.job" or "jenkins.repo-url" option '
+                  'to avoid getting here'),
         )
     query = ('Any URL WHERE REV changeset %(rev)s, REV from_repository REPO,'
              ' REPO source_url URL')
@@ -102,7 +106,8 @@ def jobs_from_hgurl(ui, jenkins_server, url, branch):
                     ui.debug(b' -> matching (revision: %s)\n' % revision)
                 yield job_name
             elif debug:
-                ui.debug(b' -> source url %s not matching %s\n' % (job_url, url))
+                ui.debug(b' -> source url %s not matching %s\n'
+                         % (job_url, url))
     # raise error.Abort('no Jenkins job matching repository url %s' % url)
 
 
@@ -112,8 +117,10 @@ def buildinfo_for_job(jenkins_server, job_name):
     try:
         jobinfo = jenkins_server.get_job_info(job_name)
     except NotFoundException:
-        raise error.ConfigError("job '%s' not found" % job_name,
-                                hint='see if jenkins.job config entry is correct')
+        raise error.ConfigError(
+            "job '%s' not found" % job_name,
+            hint='see if jenkins.job config entry is correct',
+        )
     for build in jobinfo['builds']:
         build_number = build['number']
         build_info = jenkins_server.get_build_info(job_name, build_number)
@@ -169,6 +176,7 @@ class jenkinsstore(object):
 
     def clear(self):
         self.svfs.unlink(b'jenkins')
+
 
 def showbuildstatus(context, mapping):
     """:build_status: String. Status of build.
@@ -250,14 +258,16 @@ def showbuildstatus(context, mapping):
     if not jobs_buildinfo:
         jobs_buildinfo.append(b'NOT BUILT')
 
-    return templatekw.compatlist(context, mapping, b'build_status', jobs_buildinfo)
+    return templatekw.compatlist(context, mapping, b'build_status',
+                                 jobs_buildinfo)
+
 
 try:
     from hgext.show import showview
 except ImportError:
     pass
 else:
-    from mercurial import cmdutil, formatter, graphmod
+    from mercurial import formatter, graphmod
     try:
         from mercurial.logcmdutil import (
             displaygraph,
@@ -270,7 +280,11 @@ else:
             changeset_templater as changesettemplater,
         )
 
-    tmpl = b'{label("changeset.{phase}{if(troubles, \' changeset.troubled\')}", shortest(node, 5))} {desc|firstline} ({author|user})\n  {build_status}\n'
+    tmpl = (
+        b'{label("changeset.{phase}{if(troubles, \' changeset.troubled\')}", '
+        b'shortest(node, 5))} {desc|firstline} ({author|user})'
+        b'\n  {build_status}\n'
+    )
 
     @showview(b'jenkins')
     def showjenkins(ui, repo):
@@ -283,6 +297,7 @@ else:
         spec = formatter.lookuptemplate(ui, None, tmpl)
         displayer = changesettemplater(ui, repo, spec, buffered=True)
         displaygraph(ui, repo, revdag, displayer, graphmod.asciiedges)
+
 
 def extsetup(ui):
     if ui.config(b'jenkins', b'url'):
