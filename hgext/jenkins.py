@@ -11,7 +11,7 @@ Information to access the Jenkins server and job needs to be defined in a
 
   [jenkins]
   url = <URL of Jenkins server>
-  job = <name of the job>
+  job = <name of the job>,<name of another job>
 
   [auth]
   jenkins.schemes = https
@@ -156,11 +156,8 @@ def showbuildstatus(context, mapping):
     server = Jenkins(url.decode('utf-8'), username=username, password=password)
 
     if 'jobs' not in storecache:
-        jobname = ui.config(b'jenkins', b'job').decode('utf-8')
-        if jobname:
-            jobs = [jobname]
-        else:
-            jobs = []
+        jobnames = ui.config(b'jenkins', b'job').decode('utf-8')
+        jobs = [n.strip() for n in jobnames.split(',')]
         storecache['jobs'] = {name: {} for name in jobs}
     elif debug:
         ui.debug(b'using cached jobs\n')
@@ -173,14 +170,14 @@ def showbuildstatus(context, mapping):
                 ui.debug(b'using cached build info for job %s\n' % job)
             build_info = jobcache.get(ctx.hex().decode('utf-8'))
             if not build_info:
-                yield '{}: NOT BUILT'.format(job)
+                yield '{}: NOT BUILT\n'.format(job)
                 continue
             if build_info['building']:
                 status = 'BUILDING'
             else:
                 status = build_info['status']
             build_url = build_info['url']
-            yield '{}: {} - {}'.format(job, status, build_url)
+            yield '{}: {} - {}\n'.format(job, status, build_url)
 
     jobs_buildinfo = [v.encode('utf-8') for v in gen_jobs_buildinfo()]
     store.save()
