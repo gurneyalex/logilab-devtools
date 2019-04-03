@@ -24,9 +24,6 @@ from __future__ import absolute_import
 from collections import defaultdict
 import json
 
-from six.moves import urllib
-
-from lxml import etree
 from jenkins import (
     Jenkins,
     NotFoundException,
@@ -34,7 +31,6 @@ from jenkins import (
 from mercurial import (
     httpconnection as httpconnectionmod,
     templatekw,
-    node,
     error,
     registrar,
     util,
@@ -54,61 +50,6 @@ def debugjenkins(ui, repo, **opts):
         jenkinsstore(repo.svfs, None).clear()
     else:
         ui.warn(b'no option specified, did nothing\n')
-
-
-def repourl_from_rev(hgnode, ui):
-    try:
-        from hgext.jpl import jplproxy
-    except ImportError:
-        raise error.Abort(
-            'failed to load hgext.jpl',
-            hint=('set "jenkins.job" or "jenkins.repo-url" option '
-                  'to avoid getting here'),
-        )
-    query = ('Any URL WHERE REV changeset %(rev)s, REV from_repository REPO,'
-             ' REPO source_url URL')
-    with jplproxy.build_proxy(ui) as client:
-        rset = client.execute(query, {'rev': hgnode})
-        if rset:
-            return rset[0][0]
-    raise error.Abort('could not find repository url from local repository')
-
-
-def jobs_from_hgurl(ui, jenkins_server, url, branch):
-    purl = urllib.parse.urlparse(url.rstrip('/'))
-
-    def match_url(expected):
-        pexpected = urllib.parse.urlparse(expected)
-        return (purl.netloc == pexpected.netloc
-                and purl.path == pexpected.path.rstrip('/'))
-
-    debug = ui.debugflag
-    for job in jenkins_server.get_jobs():
-        job_name = job['name']
-        if debug:
-            ui.debug(b'* %s\n' % job_name)
-        config = jenkins_server.get_job_config(job_name)
-        root = etree.fromstring(config.encode('utf-8'))
-        for scm in root.findall('scm'):
-            for source in scm.iterchildren('source'):
-                break
-            else:
-                if debug:
-                    ui.debug(b' -> no scm definition, skipping\n')
-                continue
-            revision = None
-            for rev_elem in scm.iterchildren('revision'):
-                revision = rev_elem.text.strip()
-                break
-            job_url = source.text
-            if match_url(job_url) and branch and branch == revision:
-                if debug:
-                    ui.debug(b' -> matching (revision: %s)\n' % revision)
-                yield job_name
-            elif debug:
-                ui.debug(b' -> source url %s not matching %s\n'
-                         % (job_url, url))
-    # raise error.Abort('no Jenkins job matching repository url %s' % url)
 
 
 def buildinfo_for_job(jenkins_server, job_name):
@@ -219,18 +160,7 @@ def showbuildstatus(context, mapping):
         if jobname:
             jobs = [jobname]
         else:
-            # look for jobs matching repository URL
-            if 'repo_url' in storecache:
-                if debug:
-                    ui.debug(b'using cached repository URL\n')
-                repo_url = storecache['repo_url']
-            else:
-                repo_url = ui.config(b'jenkins', b'repo-url')
-                if not repo_url:
-                    rev = node.short(repo.lookup(ctx.hex()))
-                    repo_url = repourl_from_rev(rev, ui)
-                storecache['repo_url'] = repo_url
-            jobs = jobs_from_hgurl(ui, server, repo_url, ctx.branch())
+            jobs = []
         storecache['jobs'] = {name: {} for name in jobs}
     elif debug:
         ui.debug(b'using cached jobs\n')
