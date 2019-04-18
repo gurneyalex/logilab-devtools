@@ -209,8 +209,11 @@ else:
 
     tmpl = (
         b'{label("changeset.{phase}{if(troubles, \' changeset.troubled\')}", '
-        b'shortest(node, 5))} {desc|firstline} ({author|user})'
-        b'\n  {build_status}\n'
+        b'shortest(node, 5))} '
+        b'[{label("log.branch", branch)}] '
+        b'{label("log.description", desc|firstline)} '
+        b'({label("log.user", author|user)})'
+        b'\n {build_status}\n'
     )
 
     @showview(b'jenkins')
